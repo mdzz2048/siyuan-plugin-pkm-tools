@@ -1,0 +1,29 @@
+{
+  "name": "siyuan-plugin-pkm-tools",
+  "author": "mdzz2048",
+  "url": "https://github.com/mdzz2048/siyuan-plugin-pkm-tools",
+  "version": "0.0.1",
+  "minAppVersion": "2.10.2",
+  "backends": ["windows", "linux", "darwin"],
+  "frontends": ["desktop"],
+  "displayName": {
+    "default": "siyuan-plugin-pkm-tools",
+    "zh_CN": "PKM 工具"
+  },
+  "description": {
+    "default": "This is a plugin sample",
+    "zh_CN": "这是一个插件示例"
+  },
+  "readme": {
+    "default": "README.md",
+    "zh_CN": "README_zh_CN.md"
+  },
+  "funding": {
+    "openCollective": "",
+    "patreon": "",
+    "github": "",
+    "custom": [
+      "https://ld246.com/sponsor"
+    ]
+  }
+}

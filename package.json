@@ -1,0 +1,38 @@
+{
+  "name": "siyuan-plugin-pkm-tools",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "This is a plugin for Siyuan (https://b3log.org/siyuan)",
+  "repository": "",
+  "homepage": "",
+  "author": "mdzz2048",
+  "main": ".src/index.js",
+  "license": "MIT",
+  "scripts": {
+    "make-link": "node --no-warnings ./scripts/make_dev_link.js",
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "lint": "eslint . --fix --cache"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/crypto-js": "^4.1.2",
+    "@types/node": "20.8.4",
+    "@vitejs/plugin-vue": "^4.3.4",
+    "@vue/tsconfig": "0.4.0",
+    "@siyuan-community/siyuan-sdk": "^0.3.2",
+    "crypto-js": "4.1.1",
+    "fast-glob": "^3.3.1",
+    "glob": "^7.2.3",
+    "minimist": "^1.2.8",
+    "rollup-plugin-livereload": "^2.0.5",
+    "siyuan": "0.8.7",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.11",
+    "vite-plugin-static-copy": "^0.15.0",
+    "vite-plugin-zip-pack": "^1.0.6"
+  },
+  "dependencies": {
+    "vue": "^3.3.4"
+  }
+}
