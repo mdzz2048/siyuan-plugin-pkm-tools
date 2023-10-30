@@ -1,17 +1,34 @@
-/**
- * Copyright (C) 2023 mdzz2048
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+export interface Block {
+    alias: string,
+    box: string,
+    content: string,
+    created: string,
+    fcontent: string,
+    hash: string,
+    hpath: string,
+    ial: string,
+    id: string,
+    length: number,
+    markdown: string,
+    memo: string,
+    name: string,
+    parent_id: string,
+    path: string,
+    root_id: string,
+    sort: number,
+    subtype: string,
+    tag: string,
+    type: string,
+    updated: string
+}
 
+export interface Attribute {
+    block_id: string,
+    box: string,
+    id: string,
+    name: string,
+    path: string,
+    root_id: string,
+    type: string,
+    value: string
+}

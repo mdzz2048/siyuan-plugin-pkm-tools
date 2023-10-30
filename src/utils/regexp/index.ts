@@ -6,4 +6,5 @@ export default {
     history: /[\/\\]history[\/\\]\d{4}-\d{2}-\d{2}-\d{6}-(clean|update|delete|format|sync|replace)([\/\\]\d{14}-[0-9a-z]{7})+\.sy$/, // 历史文档路径
     snapshot: /^[0-9a-f]{40}$/, // 快照对象 ID
     shorthand: /^\d{13}$/, // 收集箱项 ID
+    weburl: /(https?:\/\/)([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?/g
 }

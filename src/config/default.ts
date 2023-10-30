@@ -21,7 +21,8 @@ export const DEFAULT_CONFIG: GlobalConfig = {
             path: "",
             block_id: "",
             type: "1",
-            path_date: ""
+            path_date: "",
+            type_insert: false,
         },
     },
     cache: {

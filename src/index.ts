@@ -6,10 +6,10 @@ import {
 } from "siyuan";
 import { createApp } from "vue";
 import SettingVue from "./components/setting/Setting.vue";
-// import { getMemos, login } from "./api/flomo";
-// import { importMemos } from "./utils/import";
+import { flomoSyncHandler } from "./sync";
 import { type GlobalConfig } from "./types/config";
 import { DEFAULT_CONFIG } from "./config/default";
+import { login } from "./api/flomo";
 
 const STORAGE_NAME = "config.json";
 
@@ -47,6 +47,19 @@ export default class PKMTools extends Plugin {
             }
         })
 
+        // todo: 文档右键菜单 (获取网页链接的标题)
+
+    }
+
+    async openSetting() {
+        new Dialog({
+            title: "设置",
+            content: `<div id="PKMToolsSetting" class="fn__flex-column"></div>`,
+            width: "720px",
+            height: "640px",
+        })
+        createApp(SettingVue).mount('#PKMToolsSetting');
+        console.log("在设置哦");
     }
 
     private addMenu(rect: DOMRect) {
@@ -59,28 +72,24 @@ export default class PKMTools extends Plugin {
                 label: "导入卡片", 
                 click: async () => {
                     console.log('正在导入 Flomo 卡片');
-                    // importMemos();
+                    if (!this.config.token.flomo) {
+                        const user = this.config.account.flomo.email;
+                        const password = this.config.account.flomo.password;
+                        const token = await login(user, password);
+                        this.config.token.flomo = token;
+                        this.saveData(STORAGE_NAME, this.config);
+                    }
+                    flomoSyncHandler(this.config);
                 }
             }, 
             {
                 icon: "iconRefresh", 
                 label: "清除缓存", 
                 click: async () => {
+                    this.config.cache.flomo.latest_slug = "";
+                    this.config.cache.flomo.latest_updated = "";
+                    this.saveData(STORAGE_NAME, this.config);
                     console.log('缓存已清空');
-                }
-            },
-            {
-                icon: "iconSettings", 
-                label: "设置", 
-                click: async () => {
-                    new Dialog({
-                        title: "设置",
-                        content: `<div id="PKMToolsSetting" class="fn__flex-column"></div>`,
-                        width: "720px",
-                        height: "640px",
-                    })
-                    createApp(SettingVue).mount('#PKMToolsSetting');
-                    console.log("在设置哦");
                 }
             }
         ]

@@ -20,6 +20,7 @@ export interface GlobalConfig {
             block_id: string, 
             type: string,
             path_date: string,
+            type_insert: boolean,
         },
     },
     cache?: {
