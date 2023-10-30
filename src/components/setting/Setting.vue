@@ -17,6 +17,17 @@
                 />
             </Item>
             <Item
+                title="插入方式"
+                text="开启: 新笔记放在最前面;<br>关闭: 新笔记放在最后面;"
+            >
+                <Checkbox
+                    setting-key="insertType"
+                    :setting-value="insertType"
+                    :options="insertTypeOptions"
+                    @changed="changeConfig"
+                />
+            </Item>
+            <Item
                 title="导入方式"
                 text="1: 全部导入一个文档;<br>2: 按创建日期拆分;"
             >
@@ -124,7 +135,7 @@
                     >
                         <Checkbox 
                             setting-key="开关 key"
-                            setting-value="开关"
+                            :setting-value="false"
                             @changed="changed"
                         />
                     </Item>
@@ -136,12 +147,12 @@
 
 <script setup lang="ts">
     import { ref, Ref, onMounted } from 'vue';
-    import Select from '../siyuan/input/Select.vue';
-    import Text from '../siyuan/input/Text.vue';
-    import Button from '../siyuan/input/Button.vue';
-    import Password from '../siyuan/input/Password.vue';
-    import Textarea from '../siyuan/input/Textarea.vue';
-    import Checkbox from '../siyuan/input/Checkbox.vue';
+    import Text from '../siyuan/setting/input/Text.vue';
+    import Select from '../siyuan/setting/input/Select.vue';
+    import Button from '../siyuan/setting/input/Button.vue';
+    import Checkbox from '../siyuan/setting/input/Checkbox.vue';
+    import Password from '../siyuan/setting/input/Password.vue';
+    import Textarea from '../siyuan/setting/input/Textarea.vue';
     import Item from '../siyuan/setting/Item.vue';
     import MiniItem from '../siyuan/setting/MiniItem.vue';
     import Group from '../siyuan/setting/Group.vue';
@@ -149,7 +160,7 @@
     import Panels from '../siyuan/setting/Panels.vue';
     import Tabs from '../siyuan/setting/Tabs.vue';
     import type { ITab } from '../siyuan/setting'
-    import type { IOption } from '../siyuan/input';
+    import type { IOption } from '../siyuan/setting/input/index';
     import * as api from './setting';
 
     const saveNotebookOptions = ref([]);
@@ -196,15 +207,20 @@
         { key: "1", text: "导入文档" },
         { key: "2", text: "按日期拆分" }
     ]
+    const insertTypeOptions: IOption[] = [
+        { key: "1", text: "插入前置子块" },
+        { key: "2", text: "插入后置子块" }
+    ]
     const savePathByDateOptions: IOption[] = [
         { key: "1", text: "年" },
-        { key: "2", text: "年-月" },
-        { key: "3", text: "年-月-日" }
+        { key: "2", text: "年/年-月" },
+        { key: "3", text: "年/年-月/年月日" }
     ]
     const config = api.getConfig();
     const saveNotebook = ref(config.setting.import.box);
     const saveType = ref(config.setting.import.type);
     const savePath = ref(config.setting.import.path);
+    const insertType = ref(config.setting.import.type_insert);
     const savePathByDate = ref(config.setting.import.path_date);
     const flomoUser = ref(config.account.flomo.email);
     const flomoPassword = ref(config.account.flomo.password);
@@ -249,15 +265,15 @@
         key === "saveNotebook" && (pluginConfig.setting.import.box = value);
         key === "savePathByDate" && (pluginConfig.setting.import.path_date = value);
         key === "savePath" && (pluginConfig.setting.import.path = value);
-        key === "saveType" && (() => {
+        key === "insertType" && (pluginConfig.setting.import.type_insert = value);
+        // key === "" && (pluginConfig);
+        if (key === "saveType") {
             pluginConfig.setting.import.type = value;
             saveType.value = value;
-        })();
-        // key === "" && (pluginConfig);
-        // key === "" && (pluginConfig);
+        }
 
 
         console.log(`${key}: ${value}`);
         api.updateConfig(pluginConfig);
     }
-</script>
+</script>../siyuan/setting/input/Select.vue../siyuan/setting/input/Text.vue../siyuan/setting/input/Button.vue../siyuan/setting/input/Password.vue../siyuan/setting/input/Textarea.vue../siyuan/setting/input/Checkbox.vue../siyuan/setting/input

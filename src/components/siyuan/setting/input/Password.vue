@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
     import { ref } from 'vue';
-    import Svg from '../misc/Svg.vue';
+    import Svg from '../../misc/Svg.vue';
 
     type IPropsOption = {
         settingKey: string,     // 标识符

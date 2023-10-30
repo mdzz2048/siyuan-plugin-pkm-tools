@@ -2,7 +2,7 @@ import { client } from "../../api/siyuan";
 import { GlobalConfig } from "../../types/config";
 import { getPluginConfig, updatePluginConfig, getConfigBlob, PLUGIN_NAME } from "../../utils/config";
 import { DEFAULT_CONFIG } from "../../config/default";
-import type { IOption } from "../siyuan/input";
+import type { IOption } from "../siyuan/setting/input";
 
 async function getNotebookOptions(): Promise<IOption[]> {
     const response = await client.lsNotebooks();
