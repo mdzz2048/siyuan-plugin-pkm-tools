@@ -1,7 +1,7 @@
 import CryptoJS from "crypto-js"
 import { IFlomoResp, ILoginRespData, IMemoLatestInfo, IMemoRespData } from "../types/flomo";
 
-const base_url = "https://flomoapp.com/api/v1";
+const baseUrl = "https://flomoapp.com/api/v1";
 
 function getSign(str: string): string {
     const salt = "dbbc3dd73364b4084c3a69346e0ce2b2";
@@ -20,8 +20,8 @@ function getLatestInfo(memos: IMemoRespData[]): IMemoLatestInfo {
     return latest_info;
 }
 
-export async function login(email: string, password: string) {
-    let url = base_url + "/user/login_by_email";
+export async function loginFlomo(email: string, password: string) {
+    let url = baseUrl + "/user/login_by_email";
     let timestamp = Math.floor(Date.now() / 1000);
     let hash_str = `api_key=flomo_web&app_version=2.0&email=${email}&password=${password}&timestamp=${timestamp}&webp=1`;
     let sign = getSign(hash_str);
@@ -48,7 +48,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function getMemos(token: string, latest_slug = "", latest_updated = "0"): Promise<IMemoRespData[]> {
-    let url = new URL(base_url + "/memo/updated");
+    let url = new URL(baseUrl + "/memo/updated");
     let timestamp = Math.floor(Date.now() / 1000);
     let hash_str = latest_slug + latest_updated === "0"
         ? `api_key=flomo_web&app_version=2.0&latest_updated_at=0&limit=200&timestamp=${timestamp}&tz=8:0&webp=1`
