@@ -38,16 +38,10 @@
 
 <script setup lang="ts">
     import { ref } from 'vue';
+    import { IPanelsPropsOption } from '.';
     import Svg from '../misc/Svg.vue';
-    import type { ITab } from '.';
 
-    type IPropsOption = {
-        panels: ITab[],    // 面板标签列表
-        searchEnable?: boolean  // 是否启用搜索
-        searchPlaceholder?: string  // 搜索提示内容
-        searchValue?: string    // 搜索框内容
-    }
-    const propsOption = defineProps<IPropsOption>();
+    const propsOption = defineProps<IPanelsPropsOption>();
     defineEmits(["searchChanged", "panelChanged"]);
     const searchValue = ref(propsOption.searchValue);
     const panelOptions = ref(propsOption.panels);

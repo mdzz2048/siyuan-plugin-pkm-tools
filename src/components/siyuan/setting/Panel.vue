@@ -10,12 +10,9 @@
 </template>
 
 <script setup lang="ts">
-    type IPropsOption = {
-        name: string,       // 面板名称
-        top?: boolean,      // 是否移除面板上下边距
-        display?: boolean,  // 是否显示面板
-    }
-    withDefaults(defineProps<IPropsOption>(), {
+    import { IPanelPropsOption } from "."
+    
+    withDefaults(defineProps<IPanelPropsOption>(), {
         display: false,
         top: true,
     })

@@ -24,12 +24,9 @@
 </template>
 
 <script setup lang="ts">
-    type IPropsOption = {
-        title: string,
-        text: string,
-        block?: boolean,
-    }
-    withDefaults(defineProps<IPropsOption>(), {
+    import { IItemPropsOption } from ".";
+
+    withDefaults(defineProps<IItemPropsOption>(), {
         block: false,
     });
 </script>

@@ -1,6 +1,6 @@
 <template>
     <div class="b3-label">
-        <span v-html="props.tilte"></span>
+        <span v-html="props.title"></span>
         <div class="config-query">
             <slot />
         </div>
@@ -8,8 +8,7 @@
 </template>
 
 <script setup lang="ts">
-    type IPropsOption = {
-        tilte: string,
-    }
-    const props = defineProps<IPropsOption>();
+    import { IGroupPropsOption } from '.';
+
+    const props = defineProps<IGroupPropsOption>();
 </script>

@@ -26,11 +26,8 @@
 
 <script setup lang="ts">
     import Svg from '../misc/Svg.vue';
-    import type { ITab } from '.'
+    import { ITabsPropsOption } from '.'
 
-    type IPropsOption = {
-        tabs: ITab[]
-    }
-    defineProps<IPropsOption>();
+    defineProps<ITabsPropsOption>();
     defineEmits(['tabChanged']);
 </script>
