@@ -1,12 +1,13 @@
-import { Dialog } from "siyuan";
+import { Dialog, showMessage } from "siyuan";
 import { getAllMemos } from "./api/flomo";
 import { client } from "./api/siyuan";
 import { GlobalConfig } from "./types/config";
 import { IMemoRespData, IMemoSyncTips } from "./types/flomo";
 import { PLUGIN_NAME, getConfigBlob, updatePluginConfig } from "./utils/config";
-import { appendMemo, filterMemosByDate, getBlock, getIdByBoxAndHpath, getMemosUpdated, parseMemo, prependMemo, updateMemo } from "./utils/import";
+import { appendMemo, cacheMemoBlockInfo, filterMemosByDate, getIdByBoxAndHpath, getMemosUpdated, parseMemo, prependMemo, updateMemo } from "./utils/import";
 import { createApp } from "vue";
-import TipsVue from "./components/tips/Tips.vue";
+import TipsVue from "./components/custom/Tips.vue";
+import { addArticle, exportArticle, getArticleContent, getUserInfo, getWebInfo, isExistArticle, searchArticle } from "./api/cubox";
 
 export async function flomoSyncHandler(config: GlobalConfig) {
     const token = config.token.flomo;
@@ -21,7 +22,10 @@ export async function flomoSyncHandler(config: GlobalConfig) {
     // 导入 Memos
     const memos = await getAllMemos(token);
     // 导入弹窗提示
-    // flomoSyncTips(memos, config);
+    const tips = await flomoSyncTips(memos, config);
+    console.log(tips);
+    const tipsInfo = `更新文档共: ${tips.length} 个`
+    showMessage(tipsInfo);      // 先用弹消息过度一下
 
     switch (syncType) {
         case "1":   // 单文档导入
@@ -136,15 +140,15 @@ async function flomoSyncTips(memos: IMemoRespData[], config: GlobalConfig): Prom
             console.log('[ERROR]配置错误 (import.type)', syncType);
             return
     }
-    new Dialog({
-        title: "导入提示",
-        content: `<div id="PKMToolsTips" class="fn__flex-column"></div>`,
-        width: "30vw",
-        height: "70vh",
-    })
-    const app = createApp(TipsVue);
-    app.provide('memosTips', tips);
-    app.mount('#PKMToolsTips');
+    // new Dialog({
+    //     title: "导入提示",
+    //     content: `<div id="PKMToolsTips" class="fn__flex-column"></div>`,
+    //     width: "30vw",
+    //     height: "70vh",
+    // })
+    // const app = createApp(TipsVue);
+    // app.provide('memosTips', tips);
+    // app.mount('#PKMToolsTips');
     return tips;
 }
 
@@ -156,10 +160,12 @@ async function flomoSyncTips(memos: IMemoRespData[], config: GlobalConfig): Prom
  */
 export async function syncAllMemos(memos: IMemoRespData[], docId: string, insertBefore: boolean) {
     const parsedMemos: string[] = [];
+    const memosBlockCach = await cacheMemoBlockInfo("custom-flomo-slug");
     insertBefore && (memos.reverse());  // 原始数据默认按时间逆序排列 (old -> new)
     memos.forEach(memo => {
         if (memo.deleted_at) return     // 删除的 Memo 不同步
-        const parsedMemo = parseMemo(memo);
+        const block = memosBlockCach.find(item => item?.ial.includes(memo.slug));
+        const parsedMemo = parseMemo(memo, block?.id);
         parsedMemos.push(parsedMemo);
     })
     client.updateBlock({

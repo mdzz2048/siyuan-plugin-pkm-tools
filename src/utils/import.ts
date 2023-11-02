@@ -113,7 +113,7 @@ function parseHtml2Md(html: string): string {
  * @param memo Memo 原始返回数据
  * @returns 适配思源的格式
  */
-export function parseMemo(memo: IMemoRespData): string {
+export function parseMemo(memo: IMemoRespData, id?: string): string {
     const slug = memo.slug;
     const created_at = memo.created_at;
     const updated_at = memo.updated_at;
@@ -133,8 +133,10 @@ export function parseMemo(memo: IMemoRespData): string {
     markdown = markdown.replaceAll(regexp.weburl, '[$&]($&)');
 
     // todo: [Templates | Nunjucks中文文档 | Nunjucks中文网](https://www.nunjucks.cn/templating)
-    const card = `{{{row\n\n${markdown}\n\n${files.join('\n')}\n}}}\n`
-        + `{: custom-created-time="${created_at}" custom-updated-time="${updated_at}" custom-flomo-slug="${slug}"}`
+    const ial = id 
+        ? `{: custom-created-time="${created_at}" custom-updated-time="${updated_at}" custom-flomo-slug="${slug}" id="${id}"}`
+        : `{: custom-created-time="${created_at}" custom-updated-time="${updated_at}" custom-flomo-slug="${slug}"}`
+    const card = `{{{row\n\n${markdown}\n\n${files.join('\n')}\n}}}\n` + ial;
     return card
 }
 
@@ -142,7 +144,7 @@ export function parseMemo(memo: IMemoRespData): string {
  * 缓存思源中存在 Memo 自定义属性的块
  * @returns 存在 Memo 自定义属性的块
  */
-async function cacheMemoBlockInfo(key: string): Promise<Block[]> {
+export async function cacheMemoBlockInfo(key: string): Promise<Block[]> {
     const response = await client.sql({
         stmt: `SELECT * FROM blocks WHERE ial LIKE '%${key}=%' LIMIT 9999999`
     })
