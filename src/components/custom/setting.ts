@@ -1,7 +1,7 @@
 import { client } from "../../api/siyuan";
 import { GlobalConfig } from "../../types/config";
 import { DEFAULT_CONFIG } from "../../config/default";
-import { getPluginConfig, updatePluginConfig, getConfigBlob, PLUGIN_NAME } from "../../utils/config";
+import { updatePluginConfig, getConfigBlob, PLUGIN_NAME, CONFIG } from "../../utils/config";
 import type { IOption } from "../siyuan/setting/input";
 import { IGroupPropsOption, IInputPropsOption, IItemPropsOption, IMiniItemPropsOption, IPanelsPropsOption, ITab } from "../siyuan/setting";
 
@@ -18,16 +18,6 @@ async function getNotebookOptions(): Promise<IOption[]> {
         } as IOption
     })
     return options;
-}
-
-/**
- * 获取插件配置文件 (config.json)
- * @returns 插件配置文件
- */
-function getConfig(): GlobalConfig {
-    const response = getPluginConfig(PLUGIN_NAME);
-    const pluginConfig = response ? response : DEFAULT_CONFIG;
-    return pluginConfig;
 }
 
 /**
@@ -108,291 +98,282 @@ interface ISettingHindItem {
     }
 }
 
-/**
- * 获取设置界面配置
- * @returns 设置界面配置
- */
-function getSettingConfig() {
-    const pluginConfig = getConfig();
-    const SETTING_CONFIG: ISettingConfig = {
-        panels: [
-            {
-                key: "1",
-                text: "常规设置",
-                focus: true,
-                name: "常规设置",
-                icon: "#iconSettings",
-                items: [
-                    {
-                        title: '导入位置',
-                        text: '选择导入笔记本',
-                        input: {
-                            type: 'select',
-                            settingKey: 'saveNotebook',
-                            settingValue: pluginConfig.setting.import.box,
-                            options: [],
-                        }
-                    },
-                    {
-                        title: '插入方式',
-                        text: '开启: 新笔记放在最前面;<br>关闭: 新笔记放在最后面;',
-                        input: {
-                            type: 'checkbox',
-                            settingKey: 'insertType',
-                            settingValue: `${pluginConfig.setting.import.type_insert}`,
-                            options: [
-                                { key: "1", text: "插入前置子块" },
-                                { key: "2", text: "插入后置子块" }
-                            ] as IOption[]
-                        }
-                    },
-                    {
-                        title: '导入方式',
-                        text: '1: 全部导入一个文档;<br>2: 按创建日期拆分;',
-                        input: {
-                            type: 'select',
-                            settingKey: 'saveType',
-                            settingValue: pluginConfig.setting.import.type,
-                            options: [
-                                { key: "1", text: "导入文档" },
-                                { key: "2", text: "按日期拆分" }
-                            ] as IOption[]
-                        }
-                    },
-                    {
-                        title: '保存路径',
-                        text: '设置保存文档路径',
-                        input: {
-                            type: 'text',
-                            settingKey: 'savePath',
-                            settingValue: pluginConfig.setting.import.path,
-                        },
-                    },
-                    {
-                        title: '拆分粒度',
-                        text: '设置保存的路径',
-                        input: {
-                            type: 'select',
-                            settingKey: 'savePathByDate',
-                            settingValue: pluginConfig.setting.import.path_date,
-                            options: [
-                                { key: "1", text: "年" },
-                                { key: "2", text: "年/年-月" },
-                                { key: "3", text: "年/年-月/年月日" }
-                            ] as IOption[]
-                        },
+const SETTING_CONFIG = () => { return {
+    panels: [
+        {
+            key: "1",
+            text: "常规设置",
+            focus: true,
+            name: "常规设置",
+            icon: "#iconSettings",
+            items: [
+                {
+                    title: '导入位置',
+                    text: '选择导入笔记本',
+                    input: {
+                        type: 'select',
+                        settingKey: 'saveNotebook',
+                        settingValue: CONFIG().setting.import.box,
+                        options: [],
                     }
-                ],
-            },
-            {
-                key: "2",
-                text: "其他设置",
-                focus: false,
-                name: "其他设置",
-                icon: "#iconDownload",
-                tabs: [
-                    {
-                        key: "1",
-                        text: "Flomo",
-                        focus: true,
-                        name: "Flomo",
-                        icon: "#iconFlomo",
-                        items: [
-                            {
-                                title: "测试",
-                                text: "点击测试连通性",
-                                input: {
-                                    type: "button",
-                                    settingKey: "flomo",
-                                    settingValue: "测试"
-                                }
+                },
+                {
+                    title: '插入方式',
+                    text: '开启: 新笔记放在最前面;<br>关闭: 新笔记放在最后面;',
+                    input: {
+                        type: 'checkbox',
+                        settingKey: 'insertType',
+                        settingValue: `${CONFIG().setting.import.type_insert}`,
+                        options: [
+                            { key: "1", text: "插入前置子块" },
+                            { key: "2", text: "插入后置子块" }
+                        ] as IOption[]
+                    }
+                },
+                {
+                    title: '导入方式',
+                    text: '1: 全部导入一个文档;<br>2: 按创建日期拆分;',
+                    input: {
+                        type: 'select',
+                        settingKey: 'saveType',
+                        settingValue: CONFIG().setting.import.type,
+                        options: [
+                            { key: "1", text: "导入文档" },
+                            { key: "2", text: "按日期拆分" }
+                        ] as IOption[]
+                    }
+                },
+                {
+                    title: '保存路径',
+                    text: '设置保存文档路径',
+                    input: {
+                        type: 'text',
+                        settingKey: 'savePath',
+                        settingValue: CONFIG().setting.import.path,
+                    },
+                },
+                {
+                    title: '拆分粒度',
+                    text: '设置保存的路径',
+                    input: {
+                        type: 'select',
+                        settingKey: 'savePathByDate',
+                        settingValue: CONFIG().setting.import.path_date,
+                        options: [
+                            { key: "1", text: "年" },
+                            { key: "2", text: "年/年-月" },
+                            { key: "3", text: "年/年-月/年月日" }
+                        ] as IOption[]
+                    },
+                }
+            ],
+        },
+        {
+            key: "2",
+            text: "其他设置",
+            focus: false,
+            name: "其他设置",
+            icon: "#iconDownload",
+            tabs: [
+                {
+                    key: "1",
+                    text: "Flomo",
+                    focus: true,
+                    name: "Flomo",
+                    icon: "#iconFlomo",
+                    items: [
+                        {
+                            title: "测试",
+                            text: "点击测试连通性",
+                            input: {
+                                type: "button",
+                                settingKey: "flomo",
+                                settingValue: "测试"
                             }
-                        ],
-                        groups: [
-                            {
-                                title: "账号信息",
-                                isGroup: true,
-                                miniItems: [
-                                    {
-                                        title: "账号",
-                                        input: {
-                                            type: "text",
-                                            settingKey: "flomoUser",
-                                            settingValue: pluginConfig.account.flomo.email
-                                        },
-                                        minWidth: "100%",
-                                        marginRight: "0px",
-                                        fullWidth: true
+                        }
+                    ],
+                    groups: [
+                        {
+                            title: "账号信息",
+                            isGroup: true,
+                            miniItems: [
+                                {
+                                    title: "账号",
+                                    input: {
+                                        type: "text",
+                                        settingKey: "flomoUser",
+                                        settingValue: CONFIG().account.flomo.email
                                     },
-                                    {
-                                        title: "密码",
-                                        input: {
-                                            type: "password",
-                                            settingKey: "flomoPassword",
-                                            settingValue: pluginConfig.account.flomo.password
-                                        },
-                                        minWidth: "100%",
-                                        marginRight: "0px",
-                                        fullWidth: true
-                                    }
-                                ]
-                            },
-                        ]
-                    },
-                    {
-                        key: "2",
-                        text: "Writeathon",
-                        focus: false,
-                        name: "Writeathon",
-                        icon: "#iconWriteathon",
-                        items: [],
-                        groups: [
-                            {
-                                title: "账号信息",
-                                isGroup: true,
-                                miniItems: [
-                                    {
-                                        title: "账号",
-                                        input: {
-                                            type: "text",
-                                            settingKey: "WriteathonUser",
-                                            settingValue: pluginConfig.account.writeathon.email
-                                        },
-                                        minWidth: "100%",
-                                        marginRight: "0px",
-                                        fullWidth: true
+                                    minWidth: "100%",
+                                    marginRight: "0px",
+                                    fullWidth: true
+                                },
+                                {
+                                    title: "密码",
+                                    input: {
+                                        type: "password",
+                                        settingKey: "flomoPassword",
+                                        settingValue: CONFIG().account.flomo.password
                                     },
-                                    {
-                                        title: "密码",
-                                        input: {
-                                            type: "password",
-                                            settingKey: "WriteathonPassword",
-                                            settingValue: pluginConfig.account.writeathon.password
-                                        },
-                                        minWidth: "100%",
-                                        marginRight: "0px",
-                                        fullWidth: true
-                                    }
-                                ]
-                            },
-                        ]
-                    },
-                    {
-                        key: "3",
-                        text: "Cubox",
-                        focus: false,
-                        name: "Cubox",
-                        icon: "#iconCubox",
-                        items: [],
-                        groups: [
-                            {
-                                title: "账号信息",
-                                isGroup: true,
-                                miniItems: [
-                                    {
-                                        title: "账号",
-                                        input: {
-                                            type: "text",
-                                            settingKey: "cuboxUser",
-                                            settingValue: pluginConfig.account.cubox.email
-                                        },
-                                        minWidth: "100%",
-                                        marginRight: "0px",
-                                        fullWidth: true
+                                    minWidth: "100%",
+                                    marginRight: "0px",
+                                    fullWidth: true
+                                }
+                            ]
+                        },
+                    ]
+                },
+                {
+                    key: "2",
+                    text: "Writeathon",
+                    focus: false,
+                    name: "Writeathon",
+                    icon: "#iconWriteathon",
+                    items: [],
+                    groups: [
+                        {
+                            title: "账号信息",
+                            isGroup: true,
+                            miniItems: [
+                                {
+                                    title: "账号",
+                                    input: {
+                                        type: "text",
+                                        settingKey: "WriteathonUser",
+                                        settingValue: CONFIG().account.writeathon.email
                                     },
-                                    {
-                                        title: "密码",
-                                        input: {
-                                            type: "password",
-                                            settingKey: "cuboxPassword",
-                                            settingValue: pluginConfig.account.cubox.password
-                                        },
-                                        minWidth: "100%",
-                                        marginRight: "0px",
-                                        fullWidth: true
-                                    }
-                                ]
-                            },
-                        ]
-                    },
-                ]
-            },
-            {
-                key: "3",
-                text: "导入模板",
-                focus: false,
-                name: "导入模板",
-                icon: "#iconMarkdown",
-                tabs: [
-                    {
-                        key: "1",
-                        text: "Flomo",
-                        focus: true,
-                        name: "Flomo",
-                        icon: "#iconFlomo",
-                        items: [
-                            {
-                                title: "文档模板",
-                                text: "使用文档模板",
-                                input: {
-                                    type: "textarea",
-                                    settingKey: "文档模板",
-                                    settingValue: "this is"
+                                    minWidth: "100%",
+                                    marginRight: "0px",
+                                    fullWidth: true
+                                },
+                                {
+                                    title: "密码",
+                                    input: {
+                                        type: "password",
+                                        settingKey: "WriteathonPassword",
+                                        settingValue: CONFIG().account.writeathon.password
+                                    },
+                                    minWidth: "100%",
+                                    marginRight: "0px",
+                                    fullWidth: true
                                 }
-                            }
-                        ],
-                    },
-                    {
-                        key: "2",
-                        text: "Writeathon",
-                        focus: false,
-                        name: "Writeathon",
-                        icon: "#iconWriteathon",
-                        items: [
-                            {
-                                title: "文档模板",
-                                text: "使用文档模板",
-                                input: {
-                                    type: "textarea",
-                                    settingKey: "文档模板",
-                                    settingValue: "this is"
+                            ]
+                        },
+                    ]
+                },
+                {
+                    key: "3",
+                    text: "Cubox",
+                    focus: false,
+                    name: "Cubox",
+                    icon: "#iconCubox",
+                    items: [],
+                    groups: [
+                        {
+                            title: "账号信息",
+                            isGroup: true,
+                            miniItems: [
+                                {
+                                    title: "账号",
+                                    input: {
+                                        type: "text",
+                                        settingKey: "cuboxUser",
+                                        settingValue: CONFIG().account.cubox.email
+                                    },
+                                    minWidth: "100%",
+                                    marginRight: "0px",
+                                    fullWidth: true
+                                },
+                                {
+                                    title: "密码",
+                                    input: {
+                                        type: "password",
+                                        settingKey: "cuboxPassword",
+                                        settingValue: CONFIG().account.cubox.password
+                                    },
+                                    minWidth: "100%",
+                                    marginRight: "0px",
+                                    fullWidth: true
                                 }
+                            ]
+                        },
+                    ]
+                },
+            ]
+        },
+        {
+            key: "3",
+            text: "导入模板",
+            focus: false,
+            name: "导入模板",
+            icon: "#iconMarkdown",
+            tabs: [
+                {
+                    key: "1",
+                    text: "Flomo",
+                    focus: true,
+                    name: "Flomo",
+                    icon: "#iconFlomo",
+                    items: [
+                        {
+                            title: "文档模板",
+                            text: "使用文档模板",
+                            input: {
+                                type: "textarea",
+                                settingKey: "文档模板",
+                                settingValue: "this is"
                             }
-                        ],
-                    },
-                    {
-                        key: "3",
-                        text: "Cubox",
-                        focus: false,
-                        name: "Cubox",
-                        icon: "#iconCubox",
-                        items: [
-                            {
-                                title: "文档模板",
-                                text: "使用文档模板",
-                                input: {
-                                    type: "textarea",
-                                    settingKey: "文档模板",
-                                    settingValue: "this is"
-                                }
+                        }
+                    ],
+                },
+                {
+                    key: "2",
+                    text: "Writeathon",
+                    focus: false,
+                    name: "Writeathon",
+                    icon: "#iconWriteathon",
+                    items: [
+                        {
+                            title: "文档模板",
+                            text: "使用文档模板",
+                            input: {
+                                type: "textarea",
+                                settingKey: "文档模板",
+                                settingValue: "this is"
                             }
-                        ],
-                    },
-                ]
-            }
-        ]
-    }
-    return SETTING_CONFIG;
-}
+                        }
+                    ],
+                },
+                {
+                    key: "3",
+                    text: "Cubox",
+                    focus: false,
+                    name: "Cubox",
+                    icon: "#iconCubox",
+                    items: [
+                        {
+                            title: "文档模板",
+                            text: "使用文档模板",
+                            input: {
+                                type: "textarea",
+                                settingKey: "文档模板",
+                                settingValue: "this is"
+                            }
+                        }
+                    ],
+                },
+            ]
+        }
+    ]
+} as ISettingConfig}
 
 export type { ISettingConfig, ISettingItemInfo, ISettingGroupInfo, ISettingHindItem };
 export {
     PLUGIN_NAME,
     DEFAULT_CONFIG,
+    SETTING_CONFIG,
 
-    getConfig,
     updateConfig,
-    getSettingConfig,
     getNotebookOptions, 
     changed,
     clicked

@@ -23,29 +23,29 @@
 <script setup lang="ts">
     import { onMounted, ref, provide } from 'vue';
     import { ITab } from '../siyuan/setting';
+    import { CONFIG } from '../../utils/config';
     import { GlobalConfig } from '../../types/config';
-    import { getNotebookOptions, getSettingConfig, getConfig } from './setting';
+    import { getNotebookOptions, SETTING_CONFIG } from './setting';
     import Tabs from '../siyuan/setting/Tabs.vue';
     import Panel from '../siyuan/setting/Panel.vue';
     import Panels from '../siyuan/setting/Panels.vue';
     import SettingItem from '../base/SettingItem.vue';
 
-    const config = getConfig();
-    const setting = ref(getSettingConfig());
+    const setting = ref(SETTING_CONFIG());
     const panelOptions = ref(setting.value.panels);
     const tabOptions = ref(setting.value.panels.map(panel => panel?.tabs));
     // 需要切换显示的配置项
     const hindItems = ref({
         "savePath": {
-            hind: config.setting.import.type !== '1',
+            hind: CONFIG().setting.import.type !== '1',
             fn: (config: GlobalConfig) => { return config.setting.import.type !== '1' }
         },
         "savePathByDate": {
-            hind: config.setting.import.type !== '2',
+            hind: CONFIG().setting.import.type !== '2',
             fn: (config: GlobalConfig) => { return config.setting.import.type !== '2' }
         }
     });
-    provide("config", config);
+    provide("config", CONFIG());
 
     onMounted(async () => {
         setting.value.panels[0].items[0]['input'].options = await getNotebookOptions();
@@ -74,7 +74,7 @@
 
     function refersh(pluginConfig: GlobalConfig) {
         console.log(pluginConfig);
-        hindItems.value.savePath.hind = hindItems.value.savePath.fn(config);
-        hindItems.value.savePathByDate.hind = hindItems.value.savePathByDate.fn(config);
+        hindItems.value.savePath.hind = hindItems.value.savePath.fn(CONFIG());
+        hindItems.value.savePathByDate.hind = hindItems.value.savePathByDate.fn(CONFIG());
     }
 </script>
