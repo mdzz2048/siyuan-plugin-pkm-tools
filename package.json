@@ -34,6 +34,7 @@
     "vite-plugin-zip-pack": "^1.0.6"
   },
   "dependencies": {
+    "handlebars": "^4.7.8",
     "turndown": "^7.1.2",
     "vue": "^3.3.4"
   }
