@@ -16,26 +16,26 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@siyuan-community/siyuan-sdk": "^0.3.2",
-    "@types/crypto-js": "^4.1.2",
+    "@siyuan-community/siyuan-sdk": "^0.3.3",
+    "@types/crypto-js": "^4.2.1",
     "@types/node": "20.8.4",
     "@types/turndown": "5.0.3",
-    "@vitejs/plugin-vue": "^4.3.4",
+    "@vitejs/plugin-vue": "^4.4.1",
     "@vue/tsconfig": "0.4.0",
     "crypto-js": "4.1.1",
-    "fast-glob": "^3.3.1",
+    "fast-glob": "^3.3.2",
     "glob": "^7.2.3",
     "minimist": "^1.2.8",
     "rollup-plugin-livereload": "^2.0.5",
     "siyuan": "0.8.7",
     "typescript": "^5.2.2",
-    "vite": "^4.4.11",
+    "vite": "^4.5.0",
     "vite-plugin-static-copy": "^0.15.0",
     "vite-plugin-zip-pack": "^1.0.6"
   },
   "dependencies": {
     "handlebars": "^4.7.8",
     "turndown": "^7.1.2",
-    "vue": "^3.3.4"
+    "vue": "^3.3.8"
   }
 }
