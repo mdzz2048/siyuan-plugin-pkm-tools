@@ -59,11 +59,13 @@ export interface IInputPropsOption {
     type: IInputType,               // 类型
     settingKey: string,             // 标识符
     settingValue: string,           // 绑定的值
-    height?: number,                // 输入框高度 | textarea
+    style?: string,                 // 绑定样式
     limit?: ILimits,                // 可选范围 ({ min: 0, max: 100, step: 1 }) | slider, number
     options?: IOption[],            // 可选列表 ({ key: string, text: string }[]) | select
     placeholder?: string,           // 占位文本 | text, textarea
     block?: boolean,                // 使用 fn__block (width: 100%;)
     normal?: boolean,               // 使用 fn__size200 (width: 200px)
+    readonly?: boolean,             // 只读
     disabled?: boolean,             // 禁用交互
+    alterable?: boolean,            // 数据是否可变
 }

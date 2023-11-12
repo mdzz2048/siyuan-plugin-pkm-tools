@@ -76,7 +76,7 @@ export async function getMemos(token: string, latest_slug = "", latest_updated =
     return result.data as IMemoRespData[];
 }
 
-export async function getAllMemos(token: string) {
+export async function getAllMemos(token: string, removeDeleted = false) {
     let memos = await getMemos(token);
     let latest_slug = getLatestInfo(memos).latest_slug;
     let latest_updated = getLatestInfo(memos).latest_updated;
@@ -88,5 +88,6 @@ export async function getAllMemos(token: string) {
         memos_length = getLatestInfo(new_memos).memos_length;
         memos.push(...new_memos);
     }
+    if (removeDeleted) memos.filter(memo => !memo.deleted_at);
     return memos;
 }

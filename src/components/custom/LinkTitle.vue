@@ -83,7 +83,7 @@ const header: IHeader[] = [
     {
         type: 'normal',
         text: '',
-        style: 'width: 30px',
+        style: 'width: 60px',
     }
 ]
 const tableSuccess: ILine[] = [];
@@ -99,33 +99,45 @@ onMounted(async () => {
     titles.forEach((title, index) => {
         const refreshIcon = `<svg style="width: 16px; height: 16px"><use xlink:href="#iconRefresh"></use></svg>`;
         const deleteIcon = `<svg style="width: 16px; height: 16px"><use xlink:href="#iconTrashcan"></use></svg>`;
+        // const cuboxIcon = `<svg style="width: 16px; height: 16px"><use xlink:href="#icon-pkm-tools-add"></use></svg>`;
         const items: IItem[] = [
             {
                 type: 'checkbox',
+                key: 'select',
                 style: 'width: 30px',
             },
             {
                 type: 'text',
-                text: "",
+                key: 'title',
+                text: '',
                 style: 'flex: 1; justify-content: start;',
                 disabled: true,
             },
             {
                 type: 'link',
+                key: 'link',
                 url: props.linkInfos[index].link,
                 style: 'width: 150px; justify-content: start;',
             },
             {
                 type: 'block',
+                key: 'blockLink',
                 url: props.linkInfos[index].blockId,
                 text: '块链接',
                 style: 'width: 100px',
             },
             {
                 type: 'button',
+                key: 'delete',
                 text: deleteIcon,
                 style: 'width: 30px',
             },
+            // {
+            //     type: 'button',
+            //     key: 'cubox',
+            //     text: cuboxIcon,
+            //     style: 'width: 30px',
+            // }
         ]
         if (title.status === 'fulfilled') {
             if (title.value) {
@@ -156,12 +168,19 @@ function clickBlock(event: PointerEvent) {
     })
 }
 
-function clickButton(event: PointerEvent, index: number, tables: ILine[], checked: number[]) {
+function clickButton(event: PointerEvent, index: number, tables: ILine[], checked: number[], key: string) {
     console.log(event);
-    tables.splice(index, 1);
-    const checkedIndex = checked.indexOf(index);
-    if (checkedIndex !== -1) { checked.splice(checkedIndex, 1) }
-    checked.forEach((item, count) => checked[count] = item > index ? item - 1 : item);
+    switch (key) {
+        case "delete": 
+            tables.splice(index, 1);
+            const checkedIndex = checked.indexOf(index);
+            if (checkedIndex !== -1) { checked.splice(checkedIndex, 1) }
+            checked.forEach((item, count) => checked[count] = item > index ? item - 1 : item);
+            break;
+        case "cubox":
+            console.log(event);
+            break;
+    }
 }
 
 // 替换标题文本
@@ -197,6 +216,9 @@ function replceTitle() {
         margin: 9px 24px;
     }
 
+    .table-item-column[column-type="button"] {
+        padding: 5px;
+    }
     .table-item-column[column-type="button"] > button {
         background-color: transparent;
         border: none;

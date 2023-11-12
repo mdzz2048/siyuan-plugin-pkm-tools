@@ -3,20 +3,20 @@ import { getAllMemos } from "./api/flomo";
 import { client } from "./api/siyuan";
 import { GlobalConfig } from "./types/config";
 import { IMemoRespData, IMemoSyncTips } from "./types/flomo";
-import { PLUGIN_NAME, getConfigBlob, updatePluginConfig } from "./utils/config";
-import { appendMemo, cacheMemoBlockInfo, filterMemosByDate, getIdByBoxAndHpath, getMemosUpdated, parseMemo, prependMemo, updateMemo } from "./utils/import";
+import { CONFIG, PLUGIN_NAME, getConfigBlob, updatePluginConfig } from "./utils/config";
+import { appendMemo, cacheBlockInfo, filterMemosByDate, getAllMdUrlTitle, getIdByBoxAndHpath, getMemosUpdated, parseMemo, prependMemo, updateMemo } from "./utils/import";
 import { createApp } from "vue";
-import TipsVue from "./components/custom/Tips.vue";
+import ClipperVue from "./components/custom/ShowTips.vue";
 import { addArticle, exportArticle, getArticleContent, getUserInfo, getWebInfo, isExistArticle, searchArticle } from "./api/cubox";
 
 export async function flomoSyncHandler(config: GlobalConfig) {
     const token = config.token.flomo;
-    const box = config.setting.import.box;
-    const path = config.setting.import.path;
-    const syncType = config.setting.import.type;
-    const pathDate = config.setting.import.path_date;
+    const box = config.setting.flomo.memo_box;
+    const path = config.setting.flomo.memo_path;
+    const syncType = config.setting.flomo.memo_import_type;
+    const pathDate = config.setting.flomo.memo_date_path;
     const latestSlug = config.cache.flomo.latest_slug;
-    const insertBefore = config.setting.import.type_insert;
+    const insertBefore = config.setting.flomo.memo_insert_before;
 
     
     // 导入 Memos
@@ -69,11 +69,12 @@ export async function flomoSyncHandler(config: GlobalConfig) {
 }
 
 async function flomoSyncTips(memos: IMemoRespData[], config: GlobalConfig): Promise<IMemoSyncTips[]> {
-    const box = config.setting.import.box;
-    const path = config.setting.import.path;
-    const syncType = config.setting.import.type;
-    const pathDate = config.setting.import.path_date;
+    const box = config.setting.flomo.memo_box;
+    const path = config.setting.flomo.memo_path;
+    const syncType = config.setting.flomo.memo_import_type;
+    const pathDate = config.setting.flomo.memo_date_path;
     const latestSlug = config.cache.flomo.latest_slug;
+    
     let tips: IMemoSyncTips[] = []
 
     switch (syncType) {
@@ -160,17 +161,19 @@ async function flomoSyncTips(memos: IMemoRespData[], config: GlobalConfig): Prom
  */
 export async function syncAllMemos(memos: IMemoRespData[], docId: string, insertBefore: boolean) {
     const parsedMemos: string[] = [];
-    const memosBlockCach = await cacheMemoBlockInfo("custom-flomo-slug");
+    const memosBlockCach = await cacheBlockInfo("custom-flomo-slug");
     insertBefore && (memos.reverse());  // 原始数据默认按时间逆序排列 (old -> new)
     memos.forEach(memo => {
-        if (memo.deleted_at) return     // 删除的 Memo 不同步
         const block = memosBlockCach.find(item => item?.ial.includes(memo.slug));
         const parsedMemo = parseMemo(memo, block?.id);
         parsedMemos.push(parsedMemo);
     })
+    const markdown = CONFIG().setting.flomo.get_link_title 
+        ? await getAllMdUrlTitle(parsedMemos.join("\n\n"))  // 配置了在导入时获取链接标题
+        : parsedMemos.join("\n\n")
     client.updateBlock({
         id: docId,
-        data: parsedMemos.join("\n\n"),
+        data: markdown,
         dataType: "markdown",
     })
 }
@@ -192,10 +195,30 @@ export async function syncIncrementMemos(memos: IMemoRespData[], docId: string, 
     })
     // 增量添加汇总后插入一次
     memosNew.forEach(memo => {
-        if (memo.deleted_at) return     // 删除的 Memo 不同步
         const parsedMemo = parseMemo(memo);
         parsedMemos.push(parsedMemo);
     })
     const insertMemo = insertBefore ? prependMemo : appendMemo;
-    insertMemo(parsedMemos.join("\n\n"), docId);
+    const markdown = CONFIG().setting.flomo.get_link_title 
+        ? await getAllMdUrlTitle(parsedMemos.join("\n\n"))  // 配置了在导入时获取链接标题
+        : parsedMemos.join("\n\n")
+    insertMemo(markdown, docId);
+}
+
+export async function cuboxSyncHandler(config: GlobalConfig) {
+    const token = config.token.cubox;
+
+    // const userInfo = await getUserInfo(token);
+    const url = 'https://www.zhihu.com/question/57569577/answer/3175180022';
+    // const webInfo = await getWebInfo(token, url);
+    // const bookmark = await addArticle(token, webInfo);
+    // const isExist = await isExistArticle(token, url);
+    // console.log(isExist)
+    // const bookmarkId = isExist.bookmarkId;
+    // console.log(bookmarkId);
+    // const bookmarkDetail = await searchArticle(token, isExist.bookmarkId);
+    // const aritcleContent = await getArticleContent(token, bookmarkId);
+    const articleHtml = await exportArticle(token, "7111382482750016819", "md");
+    
+    console.log(articleHtml);
 }

@@ -3,46 +3,54 @@
     <button 
         v-if="propsOption.type === 'button'"
         :disabled="disabled"
+        :readonly="propsOption.readonly"
         :class="[
             'b3-button b3-button--outline', 
             {'fn__block': block, 'fn__flex-center': !block, 'fn__size200': !block && normal}]"
-        @click="$emit('clicked', settingKey, settingValue, config)"
-    >{{ settingValue }}</button>
+        :style="style"
+        @click="$emit('clicked', settingKey, value)"
+    >{{ value }}</button>
 
     <!-- checkbox -->
     <input 
         v-if="propsOption.type === 'checkbox'"
-        :disabled="disabled"
-        :class="['b3-switch', {'fn__block': block, 'fn__flex-center': !block}]"
         type="checkbox"
-        v-model="settingValue"
-        @change="$emit('changed', settingKey, settingValue, config)"
+        :disabled="disabled"
+        :readonly="propsOption.readonly"
+        :class="['b3-switch', {'fn__block': block, 'fn__flex-center': !block}]"
+        :style="style"
+        v-model="value"
+        @change="$emit('changed', settingKey, value)"
     />
 
     <!-- number -->
     <input 
         v-if="propsOption.type === 'number'"
-        :disabled="disabled"
-        :class="['b3-text-field', {'fn__block': block, 'fn__flex-center': !block, 'fn__size200': !block && normal}]"
         type="number"
+        :disabled="disabled"
+        :readonly="propsOption.readonly"
+        :class="['b3-text-field', {'fn__block': block, 'fn__flex-center': !block, 'fn__size200': !block && normal}]"
         :min="limit.min"
         :max="limit.max"
         :step="limit.step"
-        v-model="settingValue"
-        @change="$emit('changed', settingKey, settingValue, config)"
+        :style="style"
+        v-model="value"
+        @change="$emit('changed', settingKey, value)"
     />
 
     <!-- password -->
     <template v-if="propsOption.type === 'password'">
         <input 
+            type="password"
             :disabled="disabled"
+            :readonly="propsOption.readonly"
             :class="[
                 'b3-text-field', 
                 {'fn__block': block, 'fn__flex-center': !block, 'fn__size200': !block && normal}]"
-            type="password"
             :placeholder="placeholder"
-            v-model="settingValue"
-            @change="$emit('changed', settingKey, settingValue, config)"
+            :style="style"
+            v-model="value"
+            @change="$emit('changed', settingKey, value)"
         />
         <span class="custom-password-preview">
             <Svg icon="#iconPreview" class="b3-list-item__graphic" @click="showPassword"></Svg>
@@ -53,11 +61,13 @@
     <select 
         v-if="propsOption.type === 'select'"
         :disabled="disabled"
+        :readonly="propsOption.readonly"
         :class="[
             'b3-select', 
             {'fn__block': block, 'fn__flex-center': !block, 'fn__size200': !block && normal}]"
-        v-model="settingValue"
-        @change="$emit('changed', settingKey, settingValue, config)"
+        :style="style"
+        v-model="value"
+        @change="$emit('changed', settingKey, value)"
     >
         <option v-for="option in propsOption.options" :value="option.key">
             {{ option.text }}
@@ -67,61 +77,75 @@
     <!-- slider -->
     <input 
         v-if="propsOption.type === 'slider'"
-        :disabled="disabled"
-        :class="['b3-slider', {'fn__block': block, 'fn__size200': !block && normal}]"
         type="range"
+        :disabled="disabled"
+        :readonly="propsOption.readonly"
+        :class="['b3-slider', {'fn__block': block, 'fn__size200': !block && normal}]"
         :min="limit.min"
         :max="limit.max"
         :step="limit.step"
-        v-model="settingValue"
-        @change="$emit('changed', settingKey, settingValue, config)"
+        :style="style"
+        v-model="value"
+        @change="$emit('changed', settingKey, value)"
     />
 
     <!-- text -->
     <input 
         v-if="propsOption.type === 'text'"
+        type="text"
         :disabled="disabled"
+        :readonly="propsOption.readonly"
         :class="[
             'b3-text-field', 
             {'fn__block': block, 'fn__flex-center': !block, 'fn__size200': !block && normal}]"
-        type="text"
         :placeholder="placeholder"
-        v-model="settingValue"
-        @change="$emit('changed', settingKey, settingValue, config)"
+        :style="style"
+        v-model="value"
+        @change="$emit('changed', settingKey, value)"
     />
 
     <!-- textarea -->
     <textarea 
         v-if="propsOption.type === 'textarea'"
+        type="text"
         :disabled="disabled"
+        :readonly="propsOption.readonly"
         :class="[
             'b3-text-field', 
             {'fn__block': block, 'fn__flex-center': !block, 'fn__size200': !block && normal}]"
-        type="text"
         :placeholder="placeholder"
-        :style="height > 0 ? `${height}px` : undefined"
-        v-model="settingValue"
-        @change="$emit('changed', settingKey, settingValue, config)"
+        :style="style"
+        v-model="value"
+        @change="$emit('changed', settingKey, value)"
     />
 
 </template>
 
 <script setup lang="ts">
-    import { ref, inject } from 'vue';
+    import { computed, ref } from 'vue';
     import { IInputPropsOption, ILimits } from '.';
     import Svg from '../misc/Svg.vue';
 
     const propsOption = withDefaults(defineProps<IInputPropsOption>(), {
         block: false,
         normal: true,
+        alterable: true,
         disabled: false,
-        height: 0,
+        readonly: false,
+        style: "",
         limit: () => { return { min: 0, max: 100, step: 1 } as ILimits },
         placeholder: "",
     });
     defineEmits(["clicked", "changed"]);
-    const settingValue = ref(propsOption.settingValue);
-    const config = inject("config");
+    const dynamicValue = ref(propsOption.settingValue);
+    const value = computed({
+        get() {
+            return propsOption.alterable ? dynamicValue.value : propsOption.settingValue
+        },
+        set(newValue) {
+            dynamicValue.value = newValue
+        }
+    })
 
     function showPassword(event: Event) {
         const targetElement = event.target as HTMLElement;

@@ -5,50 +5,37 @@ import {
     type IMenuItemOption,
 } from "siyuan";
 import { createApp } from "vue";
-import SettingVue from "./components/setting/Setting.vue";
-import { flomoSyncHandler } from "./sync";
-import { type GlobalConfig } from "./types/config";
-import { DEFAULT_CONFIG } from "./config/default";
-import { login } from "./api/flomo";
+import SettingVue from "./components/custom/Setting.vue";
+import { TopBarMenu, onEditorTitleClicked, onMenuLinkOpened } from "./config/menu";
+import { icon } from "./assets/symbols";
 
-const STORAGE_NAME = "config.json";
+let clickEditorTitleListener: EventListener;
+let openMenuLinkListener: EventListener;
 
 export default class PKMTools extends Plugin {
-    public config!: GlobalConfig;
 
     onload(): void {
-        
-        this.loadData(STORAGE_NAME)
-            .then(config => {
-                if (config == "") {
-                    this.config = DEFAULT_CONFIG;
-                } else {
-                    this.config = config;
-                }
-            })
-            .catch(error => console.error('获取配置失败', error))
-
         const topBarElement = this.addTopBar({
             icon: "iconDownload", 
             title: 'tools', 
             position: 'left', 
             callback: async () => {
-                let rect = topBarElement.getBoundingClientRect();
-                // 如果被隐藏，则使用更多按钮
-                if (rect.width === 0) {
-                    const newRect = document.querySelector("#barMore")?.getBoundingClientRect();
-                    rect = newRect ? newRect : rect;
-                }
-                if (rect.width === 0) {
-                    const newRect = document.querySelector("#barPlugins")?.getBoundingClientRect();
-                    rect = newRect ? newRect : rect;
-                }
-                this.addMenu(rect);
+                const rect = this.getTopBarRect(topBarElement);
+                this.addMenu(rect, TopBarMenu);
             }
         })
 
-        // todo: 文档右键菜单 (获取网页链接的标题)
+        clickEditorTitleListener = (e: CustomEvent) => onEditorTitleClicked(e, this);
+        openMenuLinkListener = (e: CustomEvent) => onMenuLinkOpened(e);
+        this.eventBus.on("click-editortitleicon", clickEditorTitleListener);
+        this.eventBus.on("open-menu-link", openMenuLinkListener);
+        this.loadData("config.json");
+        this.addIcons(icon);
+    }
 
+    onunload(): void {
+        this.eventBus.off("click-blockicon", clickEditorTitleListener);
+        this.eventBus.off("open-menu-link", openMenuLinkListener);
     }
 
     async openSetting() {
@@ -62,50 +49,29 @@ export default class PKMTools extends Plugin {
         console.log("在设置哦");
     }
 
-    private addMenu(rect: DOMRect) {
-        const menu = new Menu("pkm-tools", () => {
-            console.log('bye pkm-tools');
-        })
-        const FlomoMenu:IMenuItemOption[] = [
-            {
-                icon: "iconDownload", 
-                label: "导入卡片", 
-                click: async () => {
-                    console.log('正在导入 Flomo 卡片');
-                    if (!this.config.token.flomo) {
-                        const user = this.config.account.flomo.email;
-                        const password = this.config.account.flomo.password;
-                        const token = await login(user, password);
-                        this.config.token.flomo = token;
-                        this.saveData(STORAGE_NAME, this.config);
-                    }
-                    flomoSyncHandler(this.config);
-                }
-            }, 
-            {
-                icon: "iconRefresh", 
-                label: "清除缓存", 
-                click: async () => {
-                    this.config.cache.flomo.latest_slug = "";
-                    this.config.cache.flomo.latest_updated = "";
-                    this.saveData(STORAGE_NAME, this.config);
-                    console.log('缓存已清空');
-                }
-            }
-        ]
-        menu.addItem({
-            icon: "iconFlomo", 
-            label: "Flomo",
-            type: "submenu" , 
-            submenu: FlomoMenu, 
-            click: () => {
-                console.log('看看行不行')
-            }
+    private addMenu(rect: DOMRect, menusOption: IMenuItemOption[]) {
+        const menu = new Menu("pkm-tools")
+        menusOption.forEach(menuOption => {
+            menu.addItem(menuOption);
         })
         menu.open({
             x: rect.right, 
             y: rect.bottom, 
             isLeft: true,
         })
+    }
+
+    private getTopBarRect(topBarElement: HTMLElement): DOMRect {
+        let rect = topBarElement.getBoundingClientRect();
+        // 如果被隐藏，则使用更多按钮
+        if (rect.width === 0) {
+            const newRect = document.querySelector("#barMore")?.getBoundingClientRect();
+            rect = newRect ? newRect : rect;
+        }
+        if (rect.width === 0) {
+            const newRect = document.querySelector("#barPlugins")?.getBoundingClientRect();
+            rect = newRect ? newRect : rect;
+        }
+        return rect;
     }
 }

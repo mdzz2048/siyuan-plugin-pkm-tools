@@ -45,13 +45,13 @@ interface IWebInfoCover {
 
 // path: /c/api/v2/search_engine/new
 export interface IBookmark {
-    hasMark: bool,
-    inBlackOrWhiteList: bool,
+    hasMark: boolean,
+    inBlackOrWhiteList: boolean,
     groupId: string,
-    isRead: bool,
+    isRead: boolean,
     description: string,
     title: string,
-    archiving: bool,
+    archiving: boolean,
     type: number,
     content: string,
     cover: string,
@@ -62,16 +62,18 @@ export interface IBookmark {
     articleName: string,
     archiveName: string,
     updateTime: string,
-    finished: bool,
+    finished: boolean,
     marks: string[],
     tags: string[],
     homeURL: string,
     groupName: string,
     markCount: number,
     createTime: string,
-    starTarget: bool,
+    starTarget: boolean,
     targetURL: string,
     status: string,
+    articleURL?: string,
+    littleIcon?: string,
 }
 
 // path: /c/api/bookmark/exist

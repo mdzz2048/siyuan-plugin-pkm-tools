@@ -7,7 +7,7 @@
         <slot />
     </div>
 
-    <!-- 按鈕 -->
+    <!-- 按钮 -->
     <div class="b3-dialog__action">
         <button
             class="b3-button b3-button--cancel"

@@ -8,6 +8,7 @@ type IHeader = {
 }
 type IItem = {
     type: "checkbox" | "button" | "text" | "link" | "block" | "input",
+    key: string,
     text?: string,
     url?: string,
     style?: string,

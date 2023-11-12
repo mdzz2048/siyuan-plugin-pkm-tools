@@ -16,7 +16,7 @@
             </div>
             <li
                 role="input"
-                v-for="panel in panelOptions"
+                v-for="panel in propsOption.panels"
                 :data-name="panel.name"
                 :value="panel.key"
                 :class="['b3-list-item', {'b3-list-item--focus': panel.focus}]"
@@ -37,14 +37,11 @@
 </template>
 
 <script setup lang="ts">
-    import { ref } from 'vue';
     import { IPanelsPropsOption } from '.';
     import Svg from '../misc/Svg.vue';
 
     const propsOption = defineProps<IPanelsPropsOption>();
     defineEmits(["searchChanged", "panelChanged"]);
-    const searchValue = ref(propsOption.searchValue);
-    const panelOptions = ref(propsOption.panels);
 </script>
 
 <style>

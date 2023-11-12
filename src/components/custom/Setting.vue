@@ -1,339 +1,168 @@
 <template>
-    <Panels
-        :panels="panelOptions"
-        :searchEnable="false"
-        @panelChanged="changeFocus"
-    >
-        <Panel :name="panelOptions[0].name" :display="panelOptions[0].focus">
-            <Item
-                title="导入位置"
-                text="选择导入的笔记本"
-            >
-                <Input
-                    type="select"
-                    setting-key="saveNotebook"
-                    :setting-value="saveNotebook"
-                    :options="saveNotebookOptions"
-                    @changed="changeConfig"
-                />
-            </Item>
-            <Item
-                title="插入方式"
-                text="开启: 新笔记放在最前面;<br>关闭: 新笔记放在最后面;"
-            >
-                <Input
-                    type="checkbox"
-                    setting-key="insertType"
-                    :setting-value="insertType"
-                    :options="insertTypeOptions"
-                    @changed="changeConfig"
-                />
-            </Item>
-            <Item
-                title="导入方式"
-                text="1: 全部导入一个文档;<br>2: 按创建日期拆分;"
-            >
-                <Input
-                    type="select"
-                    setting-key="saveType"
-                    :setting-value="saveType"
-                    :options="saveTypeOptions"
-                    @changed="changeConfig"
-                />
-            </Item>
-            <Item
-                title="保存路径"
-                text="设置保存文档路径"
-                v-if="saveType === '1'"
-            >
-                <Input
-                    type="text"
-                    setting-key="savePath"
-                    :setting-value="savePath"
-                    @changed="changeConfig"
-                />
-            </Item>
-            <Item
-                title="拆分粒度"
-                text="设置保存的路径"
-                v-else-if="saveType === '2'"
-            >
-                <Input
-                    type="select"
-                    setting-key="savePathByDate"
-                    :setting-value="savePathByDate"
-                    :options="savePathByDateOptions"
-                    @changed="changeConfig"
-                />
-
-            </Item>
-        </Panel>
-        <Panel :name="panelOptions[1].name" :display="panelOptions[1].focus">
-            <Tabs
-                :tabs="tabOptions"
-                @tabChanged="changeFocus"
-            >
-                <Panel :name="tabOptions[0].name" :display="tabOptions[0].focus" :top="false">
-                    <Item
-                        title="测试"
-                        text="点击测试连通性"
+    <Panels :panels="setting.panels" @panelChanged="changeFocus">
+        <!-- 面板 -->
+        <Panel :name="panel.name" :display="panel.focus" v-for="panel of setting.panels">
+            <!-- 页签 -->
+            <template v-if="panel?.tabs">
+                <Tabs :tabs="panel?.tabs" @tabChanged="changeFocus">
+                    <Panel v-for="tab of panel.tabs" :display="tab.focus" :top="false">
+                        <!-- item -->
+                        <Item v-for="item of tab.items" v-bind="item" 
+                            v-show="!hindItems?.[item.input.settingKey]" @change="refersh"
+                        >
+                            <Input v-bind="item.input" @clicked="clicked" @changed="changed"/>
+                        </Item>
+                        <!-- group -->
+                        <Group v-for="group of tab.groups" :title="group.title">
+                            <MiniItem v-for="option of group.miniItems" v-bind="option"
+                                v-show="!hindItems?.[option.input.settingKey]" @change="refersh"
+                            >
+                                <Input v-bind="option.input" @clicked="clicked" @changed="changed"/>
+                            </MiniItem>
+                        </Group>
+                    </Panel>
+                </Tabs>
+            </template>
+            <!-- 配置项 -->
+            <template v-else>
+                <!-- item -->
+                <Item v-for="item of panel.items" v-bind="item" 
+                    v-show="!hindItems?.[item.input.settingKey]" @change="refersh"
+                >
+                    <Input v-bind="item.input" @clicked="clicked" @changed="changed"/>
+                </Item>
+                <!-- group -->
+                <Group v-for="group of panel.groups" :title="group.title">
+                    <MiniItem v-for="option of group.miniItems" v-bind="option"
+                        v-show="!hindItems?.[option.input.settingKey]" @change="refersh"
                     >
-                        <Input
-                            type="button" 
-                            setting-key="flomo"
-                            setting-value="测试"
-                            @clicked="testLogin"
-                        />
-                    </Item>
-                    <Group title="账号信息">
-                        <MiniItem min-width="100%" margin-right="0px" :fullWidth="true">
-                            <template #title>
-                                <div class="b3-list-item__text">账号</div>
-                            </template>
-                            <Input
-                                type="text"
-                                setting-key="flomoUser"
-                                :setting-value="flomoUser"
-                                @changed="changeConfig"
-                            />
-                        </MiniItem>
-                        <MiniItem min-width="100%" margin-right="0px" :fullWidth="true">
-                            <template #title>
-                                <div class="b3-list-item__text">密码</div>
-                            </template>
-                            <Input
-                                type="password"
-                                setting-key="flomoPassword"
-                                :setting-value="flomoPassword"
-                                @changed="changeConfig"
-                            />
-                        </MiniItem>
-                    </Group>
-                    <Item
-                        title="文档模板"
-                        text="使用文档模板"
-                    >
-                        <Input
-                            type="textarea"
-                            setting-key="文档模板"
-                            setting-value="this is"
-                            @changed="changed"
-                        />
-                    </Item>
-                </Panel>
-                <Panel :name="tabOptions[1].name" :display="tabOptions[1].focus" :top="false">
-                    <Item
-                        title="测试"
-                        text="点击测试账密是否正确"
-                    >
-                        <Input
-                            type="button" 
-                            setting-key="按键 key"
-                            setting-value="按键"
-                            @clicked="clicked"
-                        />
-                    </Item>
-                </Panel>
-                <Panel :name="tabOptions[2].name" :display="tabOptions[2].focus" :top="false">
-                    <Item
-                        title="测试"
-                        text="点击测试连通性"
-                    >
-                        <Input
-                            type="button" 
-                            setting-key="cubox"
-                            setting-value="测试"
-                            @clicked="testLogin"
-                        />
-                    </Item>
-                    <Group title="账号信息">
-                        <MiniItem min-width="100%" margin-right="0px" :fullWidth="true">
-                            <template #title>
-                                <div class="b3-list-item__text">账号</div>
-                            </template>
-                            <Input
-                                type="text"
-                                setting-key="cuboxUser"
-                                :setting-value="cuboxUser"
-                                @changed="changeConfig"
-                            />
-                        </MiniItem>
-                        <MiniItem min-width="100%" margin-right="0px" :fullWidth="true">
-                            <template #title>
-                                <div class="b3-list-item__text">密码</div>
-                            </template>
-                            <Input
-                                type="password"
-                                setting-key="cuboxPassword"
-                                :setting-value="cuboxPassword"
-                                @changed="changeConfig"
-                            />
-                        </MiniItem>
-                    </Group>
-                </Panel>
-            </Tabs>
+                        <Input v-bind="option.input" @clicked="clicked" @changed="changed"/>
+                    </MiniItem>
+                </Group>
+            </template>
         </Panel>
     </Panels>
 </template>
 
 <script setup lang="ts">
-    import { ref, Ref, onMounted } from 'vue';
-    import { loginFlomo } from '../../api/flomo';
-    import { loginCubox } from '../../api/cubox';
-    import Input from '../siyuan/setting/Input.vue';
-    import Item from '../siyuan/setting/Item.vue';
-    import Group from '../siyuan/setting/Group.vue';
-    import MiniItem from '../siyuan/setting/MiniItem.vue';
-    import Panel from '../siyuan/setting/Panel.vue';
-    import Panels from '../siyuan/setting/Panels.vue';
-    import Tabs from '../siyuan/setting/Tabs.vue';
-    import type { ITab } from '../siyuan/setting'
-    import type { IOption } from '../siyuan/setting/input/index';
-    import * as api from './setting';
+import { onMounted, ref } from 'vue';
+import { ITab } from '../siyuan/setting';
+import { CONFIG } from '../../utils/config';
+import { fackBookmark } from '../../config/fake';
+import { parseTemplate } from '../../utils/template';
+import { SETTING_CONFIG, getNotebookOptions, updateConfig, updateObjectByKey, ISettingConfig } from './setting';
+import Tabs from '../siyuan/setting/Tabs.vue';
+import Panel from '../siyuan/setting/Panel.vue';
+import Panels from '../siyuan/setting/Panels.vue';
+import Item from '../siyuan/setting/Item.vue';
+import Input from '../siyuan/setting/Input.vue';
+import Group from '../siyuan/setting/Group.vue';
+import MiniItem from '../siyuan/setting/MiniItem.vue';
 
-    const saveNotebookOptions: Ref<IOption[]> = ref([]);
-    const panelOptions: Ref<ITab[]> = ref([
-        {
-            key: "1",
-            text: "常规设置",
-            focus: true,
-            name: "常规设置",
-            icon: "#iconSettings",
-        },
-        {
-            key: "2",
-            text: "其他设置",
-            focus: false,
-            name: "其他设置",
-            icon: "#iconDownload"
-        }
-    ])
-    const tabOptions: Ref<ITab[]> = ref([
-        {
-            key: "1",
-            text: "Flomo",
-            focus: true,
-            name: "Flomo",
-            icon: "#iconFlomo"
-        },
-        {
-            key: "2",
-            text: "Writeathon",
-            focus: false,
-            name: "Writeathon",
-            icon: "#iconWriteathon"
-        },
-        {
-            key: "2",
-            text: "Cubox",
-            focus: false,
-            name: "Cubox",
-            icon: "#iconCubox"
-        },
-    ])
-    const saveTypeOptions: IOption[] = [
-        { key: "1", text: "导入文档" },
-        { key: "2", text: "按日期拆分" }
-    ]
-    const insertTypeOptions: IOption[] = [
-        { key: "1", text: "插入前置子块" },
-        { key: "2", text: "插入后置子块" }
-    ]
-    const savePathByDateOptions: IOption[] = [
-        { key: "1", text: "年" },
-        { key: "2", text: "年/年-月" },
-        { key: "3", text: "年/年-月/年月日" }
-    ]
-    const config = api.getConfig();
-    const saveNotebook = ref(config.setting.import.box);
-    const saveType = ref(config.setting.import.type);
-    const savePath = ref(config.setting.import.path);
-    const insertType = ref(config.setting.import.type_insert);
-    const savePathByDate = ref(config.setting.import.path_date);
-    const flomoUser = ref(config.account.flomo.email);
-    const flomoPassword = ref(config.account.flomo.password);
-    const cuboxUser = ref(config.account.cubox.email);
-    const cuboxPassword = ref(config.account.cubox.password);
+const config = CONFIG();
+const setting = ref(SETTING_CONFIG());
+// 需要切换显示的配置项
+const hindItems = ref({
+    "flomoSavePath": config.setting.flomo.memo_import_type !== "1",
+    "flomoSaveDatePath": config.setting.flomo.memo_import_type !== "2",
+    "cuboxSavePath": config.setting.cubox.article_import_type !== "1",
+    "cuboxSaveDatePath": config.setting.cubox.article_import_type !== "2",
+    "cuboxDocTemplateParsed": true,
+});
+
+onMounted(async () => {
+    const notebooks = await getNotebookOptions();
+    setting.value = SETTING_CONFIG(notebooks);
+})
+
+function changeFocus(item: ITab, type: "panel" | "tab") {
+    switch (type) {
+        case "panel": 
+            setting.value.panels.forEach(panel => {
+                panel.focus = panel.key === item.key ? true : false;
+                panel?.tabs?.forEach(tab => tab.focus = false);
+                if (panel.key === item.key && panel?.tabs?.[0]) { panel.tabs[0].focus = true }
+            })
+            break;
+        case "tab":
+            setting.value.panels.forEach(panel => {
+                panel?.tabs?.forEach(tab => tab.focus = tab === item ? true : false);
+            })
+            break;
+        default:
+            console.log(`匹配失败: ${type}`, item);
+            break;
+    }
+}
+
+function refersh() {
+    hindItems.value.flomoSavePath = config.setting.flomo.memo_import_type !== "1";
+    hindItems.value.flomoSaveDatePath = config.setting.flomo.memo_import_type !== "2";
+    hindItems.value.cuboxSavePath = config.setting.cubox.article_import_type !== "1";
+    hindItems.value.cuboxSaveDatePath = config.setting.cubox.article_import_type !== "2";
+}
+
+/**
+ * 设置界面点击事件
+ * @param key 
+ * @param value 
+ */
+function clicked(key: string, value: any) {
+    switch (key) {
+        case "cuboxDocTemplateTest":
+            // 解析模板
+            const template = config.setting.cubox.article_template;
+            const parsed = parseTemplate(template, {
+                bookmark: fackBookmark
+            })
+            console.log(parsed);
+            // 显示解析内容
+            hindItems.value.cuboxDocTemplateParsed = false;
+            updateObjectByKey(setting.value, "cuboxDocTemplateParsed", parsed);
+            break;
+        case "flomoLoginTest":
+            updateObjectByKey(setting.value, "flomoLoginTest", "114514") as ISettingConfig;
+            console.log(setting.value);
+            break;
+        default:
+            console.log(key);
+            break;
+    }
+    console.log(key);
+    console.log(value);
+}
+
+/**
+ * 设置界面表单输入事件
+ * @param key settingKey: 
+ * @param value settingValue: 
+ */
+ function changed(key: string, value: any) {
+
+    key === "flomoUser" && (config.account.flomo.email = value);
+    key === "flomoPassword" && (config.account.flomo.password = value);
+    key === "flomoSaveNotebook" && (config.setting.flomo.memo_box = value);
+    key === "flomoInsertType" && (config.setting.flomo.memo_insert_before = value);
+    key === "flomoSaveType" && (config.setting.flomo.memo_import_type = value);
+    key === "flomoSavePath" && (config.setting.flomo.memo_path = value);
+    key === "flomoSaveDatePath" && (config.setting.flomo.memo_date_path = value);
+    key === "flomoGetLinkTitle" && (config.setting.flomo.get_link_title = value);
+    key === "dnNotebook" && (config.setting.flomo.dn_box = value);
+    key === "dnLinkDoc" && (config.setting.flomo.dn_link_doc = value);
+    key === "dnInsertType" && (config.setting.flomo.dn_insert_before = value);
+    key === "dnUseRef" && (config.setting.flomo.dn_use_ref = value);
+    key === "cuboxUser" && (config.account.cubox.email = value);
+    key === "cuboxPassword" && (config.account.cubox.password = value);
+    key === "cuboxSaveNotebook" && (config.setting.cubox.article_box = value);
+    key === "cuboxSaveType" && (config.setting.cubox.article_import_type = value);
+    key === "cuboxSavePath" && (config.setting.cubox.article_path = value);
+    key === "cuboxSaveDatePath" && (config.setting.cubox.article_date_path = value);
+    key === "cuboxDocTemplate" && (config.setting.cubox.article_template = value);
+    key === "cuboxBookmarkTemplate" && (config.setting.cubox.bookmark_template = value);
+    key === "writeathonUser" && (config.account.cubox.email = value);
+    key === "writeathonPassword" && (config.account.cubox.password = value);
     
-    onMounted(async () => {
-        saveNotebookOptions.value = await api.getNotebookOptions();
-    })
-
-    function changed(key: string, value: any) {
-        console.log(key);
-        console.log(value);
-    }
-
-    function clicked(key: string, value: any) {
-        console.log(key);
-        console.log(value);
-    }
-
-    function changeFocus(item: ITab, type: "panel" | "tab") {
-        switch (type) {
-            case "panel": 
-                panelOptions.value.forEach(panel => {
-                    panel.focus = panel === item ? true : false; 
-                })
-                break;
-            case "tab":
-                tabOptions.value.forEach(tab => {
-                    tab.focus = tab === item ? true : false; 
-                })
-                break;
-            default:
-                console.log(`匹配失败: ${type}`, item);
-                break;
-        }
-    }
-
-    function changeConfig(key: string, value: any) {
-        const pluginConfig = api.getConfig();
-
-        key === "saveNotebook" && (pluginConfig.setting.import.box = value);
-        key === "savePathByDate" && (pluginConfig.setting.import.path_date = value);
-        key === "savePath" && (pluginConfig.setting.import.path = value);
-        key === "insertType" && (pluginConfig.setting.import.type_insert = value);
-        key === "saveType" && (pluginConfig.setting.import.type = value);
-        key === "flomoUser" && (pluginConfig.account.flomo.email = value);
-        key === "flomoPassword" && (pluginConfig.account.flomo.password = value);
-        key === "cuboxUser" && (pluginConfig.account.cubox.email = value);
-        key === "cuboxPassword" && (pluginConfig.account.cubox.password = value);
-        // key === "" && (pluginConfig);
-
-        key === "saveType" && (saveType.value = value);
-
-        console.log(`${key}: ${value}`);
-        api.updateConfig(pluginConfig);
-    }
-
-    async function testLogin(key: string, value: any) {
-        const pluginConfig = api.getConfig();
-
-        switch (key) {
-            case 'flomo':
-                const flomoEmail = pluginConfig.account.flomo.email;
-                const flomoPassword = pluginConfig.account.flomo.password;
-                const flomoToken = await loginFlomo(flomoEmail, flomoPassword);
-                if (flomoToken) {
-                    console.log('flomo token: ', flomoToken);
-                    pluginConfig.token.flomo = flomoToken;
-                }
-                api.updateConfig(pluginConfig);
-                break;
-            case 'cubox':
-                const cuboxEmail = pluginConfig.account.cubox.email;
-                const cuboxPassword = pluginConfig.account.cubox.password;
-                const cuboxToken = await loginCubox(cuboxEmail, cuboxPassword);
-                if (cuboxToken) {
-                    console.log('cubox token: ', cuboxToken);
-                    pluginConfig.token.cubox = cuboxToken;
-                }
-                api.updateConfig(pluginConfig);
-                break;
-            default:
-                console.log("[ERROR]配置错误 (setting)", key, value);
-                break;
-        }
-    }
+    console.log(`${key}: ${value}`);
+    updateConfig(config);
+}
 </script>

@@ -38,7 +38,7 @@
                     >
                     <button v-if="item.type === 'button'" 
                         v-html="item.text"
-                        @click="$emit('clickButton', $event, index, dynamicTable, checkedLines)"
+                        @click="$emit('clickButton', $event, index, dynamicTable, checkedLines, item.key)"
                     ></button>
                     <div v-if="item.type === 'link'" 
                         class="ariaLabel"

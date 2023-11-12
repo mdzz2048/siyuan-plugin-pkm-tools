@@ -3,7 +3,52 @@ import { client } from "../api/siyuan";
 import { IMemoRespData } from "../types/flomo";
 import { Attribute, Block } from "../types/siyuan";
 import regexp from "./regexp";
+import { getAllMemos } from "../api/flomo";
+import { CONFIG } from "./config";
 
+/**
+ * 根据日期获取 Memos
+ * @param date 指定的日期
+ * @returns newMemos: 未导入思源的 Memos; memosLink: Memos 的链接; memosRef: Memos 的引用
+ */
+export async function getMemosRefByDate(date: string): Promise<[IMemoRespData[], string[], string[]]> {
+    const token = CONFIG().token.flomo;
+    // 获取指定日期的 Memos
+    const memos = await getAllMemos(token);
+    const dateMemos = memos.filter(memo => timeInDate(memo.created_at, date));
+    // 获取思源的 Memos 数据缓存
+    const cacheBlock = await cacheBlockInfo("custom-flomo-slug");
+    const newMemos: IMemoRespData[] = [], memosLink: string[] = [], memosRef: string[] = [];
+    dateMemos.forEach(memo => {
+        const block = cacheBlock.find(block => block.ial.includes(memo.slug));
+        // 跳过思源没有缓存的
+        if (!block) { newMemos.push(memo); return }
+        // 根据思源块 ID 拼接反向链接或者链接
+        memosRef.push(`((${block.id} "${block.fcontent}"))`);
+        memosLink.push(`[${block.fcontent}](${block.id})`)
+    })
+    return [newMemos, memosLink, memosRef];
+}
+
+function timeInDate(time: string, today: string) {
+    const date = new Date(Date.parse(today));
+    const timestamp = new Date(Date.parse(time)).getTime();
+    const todayDate = date.getTime();
+    const tomorrow = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() - 1;
+    return todayDate < timestamp && timestamp < tomorrow;
+}
+
+export async function inDailyNoteBox(blockId: string, box: string): Promise<boolean> {
+    const block = await getBlock(blockId);
+    return block.box === box;
+}
+
+/**
+ * 获取 "按日期拆分" 保存方式对应的文档路径，以及对应时间内创建的 Memos
+ * @param memos flomo 原始返回数据
+ * @param path 设置中的拆分粒度
+ * @returns [指定粒度的时间内创建的 Memos, 指定粒度的路径]
+ */
 export function filterMemosByDate(memos: IMemoRespData[], path: string): [IMemoRespData[], string][] {
     const memosGroups: [IMemoRespData[], string][] = [];
     memos.forEach(memo => {
@@ -19,9 +64,14 @@ export function filterMemosByDate(memos: IMemoRespData[], path: string): [IMemoR
     return memosGroups;
 }
 
+/**
+ * 区分新创建的 Memos 和 更新的 Memos
+ * @param memos 获取更新过的 Memos
+ * @returns [更新的 Memos, 新的 Memos]
+ */
 export async function getMemosUpdated(memos: IMemoRespData[]): Promise<[[IMemoRespData, string][], IMemoRespData[]]> {
-    const memosAttrCach = await cacheMemoAttrInfo("custom-created-time");
-    const memosBlockCach = await cacheMemoBlockInfo("custom-flomo-slug");
+    const memosAttrCach = await cacheAttrInfo("custom-created-time");
+    const memosBlockCach = await cacheBlockInfo("custom-flomo-slug");
     const memosNew: IMemoRespData[] = [];
     const memosUpdated: [IMemoRespData, string][] = [];
     memos.forEach(memo => {
@@ -144,14 +194,14 @@ export function parseMemo(memo: IMemoRespData, id?: string): string {
  * 缓存思源中存在 Memo 自定义属性的块
  * @returns 存在 Memo 自定义属性的块
  */
-export async function cacheMemoBlockInfo(key: string): Promise<Block[]> {
+export async function cacheBlockInfo(key: string): Promise<Block[]> {
     const response = await client.sql({
         stmt: `SELECT * FROM blocks WHERE ial LIKE '%${key}=%' LIMIT 9999999`
     })
     return response.data as Block[]
 }
 
-async function cacheMemoAttrInfo(key: string): Promise<Attribute[]> {
+export async function cacheAttrInfo(key: string): Promise<Attribute[]> {
     const response = await client.sql({
         stmt: `SELECT * FROM attributes WHERE name='${key}' LIMIT 99999999`
     })
@@ -163,12 +213,34 @@ async function cacheMemoAttrInfo(key: string): Promise<Attribute[]> {
  * @param url 网页 URL
  * @returns URL 对应网页的 title
  */
-async function getUrlTitle(url: string): Promise<string> {
+export async function getUrlTitle(url: string): Promise<string> {
+    // todo: 微信的文章 title 标签是空的，标题在 <meta> 里 
+    // <meta property="og:title" content="xxx"/>
     const response = await fetch(url);
     if (!response.ok) return;
     const html = await response.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.querySelector('title').textContent;
+    return doc.querySelector('title')?.textContent;
+}
+
+export async function getAllMdUrlTitle(markdown: string): Promise<string> {
+    const regex = /(?<!\!)\[.*?\]\((http.*?)\)/g;
+    const promises: Promise<string>[] = [];
+    // 提取链接
+    const links = [...markdown.matchAll(regex)];
+    links.forEach(link => promises.push(getUrlTitle(link[1])));
+    // 获取链接标题
+    const titles = await Promise.allSettled(promises);
+    // 替换链接文本
+    titles.forEach((result, index) => {
+        const link = links[index][0];
+        const url = links[index][1];
+        if (result.status === "fulfilled" && result.value !== "") {
+            const title = result.value;
+            markdown = markdown.replace(link, `[${title}](${url})`);
+        }
+    })
+    return markdown;
 }
 
 /**
