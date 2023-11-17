@@ -16,7 +16,7 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@siyuan-community/siyuan-sdk": "^0.3.3",
+    "@siyuan-community/siyuan-sdk": "^0.3.4",
     "@types/crypto-js": "^4.2.1",
     "@types/node": "20.8.4",
     "@types/turndown": "5.0.3",
@@ -27,7 +27,7 @@
     "glob": "^7.2.3",
     "minimist": "^1.2.8",
     "rollup-plugin-livereload": "^2.0.5",
-    "siyuan": "0.8.7",
+    "siyuan": "0.8.8",
     "typescript": "^5.2.2",
     "vite": "^4.5.0",
     "vite-plugin-static-copy": "^0.15.0",
