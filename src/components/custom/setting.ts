@@ -1,6 +1,5 @@
-import { client } from "../../api/siyuan";
+import { client } from "../../apps/siyuan/api";
 import { GlobalConfig } from "../../types/config";
-import { DEFAULT_CONFIG } from "../../config/default";
 import { updatePluginConfig, getConfigBlob, PLUGIN_NAME, CONFIG } from "../../utils/config";
 import { 
     IGroupPropsOption, IInputPropsOption, IItemPropsOption, IMiniItemPropsOption, IPanelsPropsOption, ITab, IOption 
@@ -10,7 +9,7 @@ import {
  * 获取思源笔记本信息
  * @returns 符合 IOption 配置接口的思源笔记本信息
  */
-async function getNotebookOptions(): Promise<IOption[]> {
+export async function getNotebookOptions(): Promise<IOption[]> {
     const response = await client.lsNotebooks();
     const options = response.data.notebooks.map(notebook => {
         return {
@@ -25,12 +24,12 @@ async function getNotebookOptions(): Promise<IOption[]> {
  * 更新插件配置文件 (config.json)
  * @param config 插件配置文件
  */
-function updateConfig(config: GlobalConfig) {
+export function updateConfig(config: GlobalConfig) {
     const configBlob = getConfigBlob(config);
     updatePluginConfig(PLUGIN_NAME, "config.json", configBlob);
 }
 
-function findObjectByKey(obj: object, key: string) {
+export function findObjectByKey(obj: object, key: string) {
     // 如果当前对象是目标对象，则返回当前对象
     if (obj.hasOwnProperty("settingKey") && obj["settingKey"] === key) {
         return obj;
@@ -57,7 +56,7 @@ function findObjectByKey(obj: object, key: string) {
     return null;
 }
 
-function updateObjectByKey(obj: object, key: string, value: string) {
+export function updateObjectByKey(obj: object, key: string, value: string) {
     // 如果当前对象是目标对象，并且具有目标键，则更新值
     if (obj?.["settingKey"] && obj["settingKey"] === key) {
         obj["settingValue"] = value;
@@ -82,43 +81,31 @@ function updateObjectByKey(obj: object, key: string, value: string) {
 
 /* ------------------------ 设置界面的 interface 定义 ------------------------ */
 
-interface ISettingConfig extends IPanelsPropsOption{
+export interface ISettingConfig extends IPanelsPropsOption{
     panels: ISettingPanel[],
 }
 
-interface ISettingPanel extends ITab {
+export interface ISettingPanel extends ITab {
     tabs?: ISettingTab[],
     items?: ISettingItemInfo[],
-    groups?: ISettingGroupInfo[],
 }
 
-interface ISettingTab extends ITab {
+export interface ISettingTab extends ITab {
     items?: ISettingItemInfo[],
-    groups?: ISettingGroupInfo[],
 }
 
-interface ISettingItemInfo extends IItemPropsOption {
+export interface ISettingItemInfo extends IItemPropsOption, IGroupPropsOption {
     input: IInputPropsOption,
+    miniItems?: ISettingMiniItemInfo[],
     isGroup?: boolean,
+    index?: number,
 }
 
-interface ISettingGroupInfo extends IGroupPropsOption {
-    miniItems: ISettingMiniItemInfo[],
-    isGroup?: boolean,
-}
-
-interface ISettingMiniItemInfo extends IMiniItemPropsOption {
+export interface ISettingMiniItemInfo extends IMiniItemPropsOption {
     input: IInputPropsOption,
 }
 
-interface ISettingHindItem {
-    [key: string]: {
-        hind: boolean,
-        fn: (config: GlobalConfig) => boolean
-    }
-}
-
-const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
+export const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
     panels: [
         {
             key: "1",
@@ -142,9 +129,7 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                                 settingKey: "flomoLoginTest",
                                 settingValue: "测试"
                             }
-                        }
-                    ],
-                    groups: [
+                        },
                         {
                             title: "账号信息",
                             isGroup: true,
@@ -173,7 +158,7 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                                 }
                             ]
                         },
-                    ]
+                    ],
                 },
                 {
                     key: "2",
@@ -183,39 +168,39 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                     icon: "#iconSettings",
                     items: [
                         {
-                            title: '导入位置',
-                            text: '选择导入笔记本',
+                            title: "导入位置",
+                            text: "选择导入笔记本",
                             input: {
-                                type: 'select',
-                                settingKey: 'flomoSaveNotebook',
+                                type: "select",
+                                settingKey: "flomoSaveNotebook",
                                 settingValue: CONFIG().setting.flomo.memo_box,
                                 options: notebooks ? notebooks : [],
                             }
                         },
                         {
-                            title: '插入方式',
-                            text: '开启: 新笔记放在最前面;<br>关闭: 新笔记放在最后面;',
+                            title: "插入方式",
+                            text: "开启: 新笔记放在最前面;<br>关闭: 新笔记放在最后面;",
                             input: {
-                                type: 'checkbox',
-                                settingKey: 'flomoInsertType',
+                                type: "checkbox",
+                                settingKey: "flomoInsertType",
                                 settingValue: `${CONFIG().setting.flomo.memo_insert_before}`,
                             }
                         },
                         {
-                            title: '链接标题',
-                            text: '开启: 获取 http 开头的链接的标题;<br>关闭: 保留原链接格式;<br>注意：该选项会影响导入性能',
+                            title: "链接标题",
+                            text: "开启: 获取 http 开头的链接的标题;<br>关闭: 保留原链接格式;<br>注意：该选项会影响导入性能",
                             input: {
-                                type: 'checkbox',
-                                settingKey: 'flomoGetLinkTitle',
+                                type: "checkbox",
+                                settingKey: "flomoGetLinkTitle",
                                 settingValue: `${CONFIG().setting.flomo.get_link_title}`,
                             }
                         },
                         {
-                            title: '导入方式',
-                            text: '1: 全部导入一个文档;<br>2: 按创建日期拆分;',
+                            title: "导入方式",
+                            text: "1: 全部导入一个文档;<br>2: 按创建日期拆分;",
                             input: {
-                                type: 'select',
-                                settingKey: 'flomoSaveType',
+                                type: "select",
+                                settingKey: "flomoSaveType",
                                 settingValue: CONFIG().setting.flomo.memo_import_type,
                                 options: [
                                     { key: "1", text: "导入文档" },
@@ -224,20 +209,20 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                             }
                         },
                         {
-                            title: '保存路径',
-                            text: '设置保存文档路径',
+                            title: "保存路径",
+                            text: "设置保存文档路径",
                             input: {
-                                type: 'text',
-                                settingKey: 'flomoSavePath',
+                                type: "text",
+                                settingKey: "flomoSavePath",
                                 settingValue: CONFIG().setting.flomo.memo_path,
                             },
                         },
                         {
-                            title: '拆分粒度',
-                            text: '设置保存的路径',
+                            title: "拆分粒度",
+                            text: "设置保存的路径",
                             input: {
-                                type: 'select',
-                                settingKey: 'flomoSaveDatePath',
+                                type: "select",
+                                settingKey: "flomoSaveDatePath",
                                 settingValue: CONFIG().setting.flomo.memo_date_path,
                                 options: [
                                     { key: "1", text: "年" },
@@ -259,8 +244,8 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                             title: "日记笔记本",
                             text: "日记笔记本",
                             input: {
-                                type: 'select',
-                                settingKey: 'dnNotebook',
+                                type: "select",
+                                settingKey: "dnNotebook",
                                 settingValue: CONFIG().setting.flomo?.dn_box,
                                 options: notebooks ? notebooks : [],
                             }
@@ -275,20 +260,20 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                             }
                         },
                         {
-                            title: '链接插入最前',
-                            text: '文档右键菜单引用 Memos 时插入的位置。<br>开启后将引用插入文档最前方',
+                            title: "链接插入最前",
+                            text: "文档右键菜单引用 Memos 时插入的位置。<br>开启后将引用插入文档最前方",
                             input: {
-                                type: 'checkbox',
-                                settingKey: 'dnInsertType',
+                                type: "checkbox",
+                                settingKey: "dnInsertType",
                                 settingValue: `${CONFIG().setting.flomo?.dn_insert_before}`
                             }
                         },
                         {
-                            title: '链接使用块引',
-                            text: '文档右键菜单引用 Memos 时的引用方式。<br>开启后将使用块引用方式链接',
+                            title: "链接使用块引",
+                            text: "文档右键菜单引用 Memos 时的引用方式。<br>开启后将使用块引用方式链接",
                             input: {
-                                type: 'checkbox',
-                                settingKey: 'dnUseRef',
+                                type: "checkbox",
+                                settingKey: "dnUseRef",
                                 settingValue: `${CONFIG().setting.flomo?.dn_use_ref}`
                             }
                         },
@@ -309,8 +294,16 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                     focus: true,
                     name: "账号配置",
                     icon: "#iconAccount",
-                    items: [],
-                    groups: [
+                    items: [
+                        {
+                            title: "测试",
+                            text: "点击测试连通性",
+                            input: {
+                                type: "button",
+                                settingKey: "cuboxLoginTest",
+                                settingValue: "测试"
+                            }
+                        },
                         {
                             title: "账号信息",
                             isGroup: true,
@@ -339,7 +332,39 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                                 }
                             ]
                         },
-                    ]
+                        {
+                            title: "清理规则",
+                            text: "1. 不清理;<br> 2. 按时间清理;<br>3. 按数量清理;<br><strong>该选项会删除收藏，请谨慎选择！</strong>",
+                            input: {
+                                type: "select",
+                                settingKey: "cuboxCleanType",
+                                settingValue: CONFIG().setting.cubox.clean_type,
+                                options: [
+                                    { key: "1", text: "不清理" },
+                                    { key: "2", text: "按时间清理" },
+                                    { key: "3", text: "按数量清理" },
+                                ]
+                            }
+                        },
+                        {
+                            title: "时间跨度",
+                            text: "清理收藏时间超过指定天数的收藏",
+                            input: {
+                                type: "number",
+                                settingKey: "cuboxCleanRuleDate",
+                                settingValue: CONFIG().setting.cubox.clean_rules_date,
+                            }
+                        },
+                        {
+                            title: "数量上限",
+                            text: "清理超过指定数量的收藏",
+                            input: {
+                                type: "number",
+                                settingKey: "cuboxCleanRuleCount",
+                                settingValue: CONFIG().setting.cubox.clean_rules_count,
+                            }
+                        }
+                    ],
                 },
                 {
                     key: "2",
@@ -349,21 +374,21 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                     icon: "#iconSettings",
                     items: [
                         {
-                            title: '导入位置',
-                            text: '选择导入笔记本',
+                            title: "导入位置",
+                            text: "选择导入笔记本",
                             input: {
-                                type: 'select',
-                                settingKey: 'cuboxSaveNotebook',
+                                type: "select",
+                                settingKey: "cuboxSaveNotebook",
                                 settingValue: CONFIG().setting.cubox.article_box,
                                 options: notebooks ? notebooks : [],
                             }
                         },
                         {
-                            title: '导入方式',
-                            text: '1: 全部导入一个文档;<br>2: 按创建日期拆分;',
+                            title: "导入方式",
+                            text: "1: 全部导入一个文档;<br>2: 按创建日期拆分;",
                             input: {
-                                type: 'select',
-                                settingKey: 'cuboxSaveType',
+                                type: "select",
+                                settingKey: "cuboxSaveType",
                                 settingValue: CONFIG().setting.cubox.article_import_type,
                                 options: [
                                     { key: "1", text: "导入文档" },
@@ -372,20 +397,20 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                             }
                         },
                         {
-                            title: '保存路径',
-                            text: '设置保存文档路径',
+                            title: "保存路径",
+                            text: "设置保存文档路径",
                             input: {
-                                type: 'text',
-                                settingKey: 'cuboxSavePath',
+                                type: "text",
+                                settingKey: "cuboxSavePath",
                                 settingValue: CONFIG().setting.cubox.article_path,
                             },
                         },
                         {
-                            title: '拆分粒度',
-                            text: '设置保存的路径',
+                            title: "拆分粒度",
+                            text: "设置保存的路径",
                             input: {
-                                type: 'select',
-                                settingKey: 'cuboxSaveDatePath',
+                                type: "select",
+                                settingKey: "cuboxSaveDatePath",
                                 settingValue: CONFIG().setting.cubox.article_date_path,
                                 options: [
                                     { key: "1", text: "年" },
@@ -402,8 +427,7 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                     focus: false,
                     name: "模板配置",
                     icon: "#iconMarkdown",
-                    items: [],
-                    groups: [
+                    items: [
                         {
                             title: "文档模板",
                             isGroup: true,
@@ -464,8 +488,7 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
                     focus: true,
                     name: "账号配置",
                     icon: "#iconAccount",
-                    items: [],
-                    groups: [
+                    items: [
                         {
                             title: "账号信息",
                             isGroup: true,
@@ -500,15 +523,3 @@ const SETTING_CONFIG = (notebooks?: IOption[]) => { return {
         },
     ]
 } as ISettingConfig }
-
-export type { ISettingConfig, ISettingItemInfo, ISettingGroupInfo, ISettingHindItem };
-export {
-    PLUGIN_NAME,
-    DEFAULT_CONFIG,
-    SETTING_CONFIG,
-
-    updateConfig,
-    getNotebookOptions, 
-    findObjectByKey,
-    updateObjectByKey,
-};

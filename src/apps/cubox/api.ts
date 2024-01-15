@@ -1,5 +1,5 @@
 import CryptoJS from "crypto-js";
-import { IBookmark, IBookmarkContent, IBookmarkExist, IResponse, IUserRespData, IWebInfo } from "../types/cubox";
+import { IBookmark, IBookmarkContent, IBookmarkExist, IResponse, IUserRespData, IWebInfo } from "./cubox";
 
 const baseUrl = "https://cubox.pro";
 const urlPath = {

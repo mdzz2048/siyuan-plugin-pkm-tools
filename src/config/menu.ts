@@ -1,53 +1,62 @@
+// todo: 重新整理一下 menu 相关的所有内容，全部放到这个文件里。不要到处拉屎……
+
 import { createApp } from "vue";
-import { IMenuItemOption, IEventBusMap, Dialog, Plugin, showMessage } from "siyuan";
-import { client } from "../api/siyuan";
-import { loginFlomo } from "../api/flomo";
-import { cuboxSyncHandler, flomoSyncHandler } from "../sync";
-import { getAllMdUrlTitle, getBlock, getMemosRefByDate, getUrlTitle, inDailyNoteBox } from "../utils/import";
+import { IMenuItemOption, IEventBusMap, Dialog } from "siyuan";
+import { client } from "../apps/siyuan/api";
+import { loginFlomo } from "../apps/flomo/api";
+import { replaceAllMdUrlTitle, getUrlTitle } from "../utils/import";
 import { CONFIG, PLUGIN_NAME, STORAGE_NAME, getConfigBlob, updatePluginConfig } from "../utils/config";
-import { ILinkInfo } from "../components/custom/table";
-import { createClipperDoc, saveToCubox } from "../utils/cubox";
-import ShowTips from "../components/custom/ShowTips.vue";
-import LinkTitleVue from "../components/custom/LinkTitle.vue";
+import { createClipperDoc, saveToCubox } from "../apps/cubox/utils";
+import { flomoSyncHandler } from "../apps/flomo/utils";
+import ShowTipsVue from "../components/custom/ShowTips.vue";
+import { clickCuboxMenuDocManage, clickDocMenuLinkTitle, clickDocMenuRefMemos, clickHomePageMenu } from "../utils/menu";
 
-const FlomoMenu: IMenuItemOption[] = [
-    {
-        icon: "iconDownload", 
-        label: "导入卡片", 
-        click: clickFlomoMenuImport
-    }, 
-    {
-        icon: "iconTrashcan", 
-        label: "清除缓存", 
-        click: clickFlomoMenuRefresh
-    },
-    {
-        icon: "iconRefresh",
-        label: "更新缓存",
-        click: clickFlomoMenuUpdateCache,
-    }
-]
+/* ------------------------ 顶栏 icon 菜单 ------------------------ */
 
-const CuboxMemu: IMenuItemOption[] = [
-    {
-        icon: "#iconAccount",
-        label: "API 测试",
-        click: clickCuboxMenuImoprt
-    }
-]
-
-const TopBarMenu: IMenuItemOption[] = [
+export const TopBarMenu: IMenuItemOption[] = [
     {
         icon: "icon-pkm-tools-flomo-c", 
         label: "Flomo",
         type: "submenu", 
-        submenu: FlomoMenu,
+        submenu: [
+            {
+                icon: "iconDownload", 
+                label: "导入卡片", 
+                click: clickFlomoMenuImport
+            }, 
+            {
+                icon: "iconTrashcan", 
+                label: "清除缓存", 
+                click: clickFlomoMenuRefresh
+            },
+            {
+                icon: "iconRefresh",
+                label: "更新缓存",
+                click: clickFlomoMenuUpdateCache,
+            }
+        ],
     },
     {
         icon: "icon-pkm-tools-cubox-c",
         label: "Cubox",
         type: "submenu",
-        submenu: CuboxMemu,
+        submenu: [
+            {
+                icon: "#iconAccount",
+                label: "API 测试",
+                click: clickCuboxMenuImoprt
+            },
+            {
+                icon: "",
+                label: "文章管理",
+                click: clickCuboxMenuDocManage
+            }
+        ],
+    },
+    {
+        icon: "",
+        label: "首页",
+        click: clickHomePageMenu
     }
 ]
 
@@ -58,9 +67,9 @@ async function clickFlomoMenuImport() {
         const password = CONFIG().account.flomo.password;
         const token = await loginFlomo(user, password);
         CONFIG().token.flomo = token;
-        this.saveData(STORAGE_NAME, CONFIG());
+        updatePluginConfig(PLUGIN_NAME, STORAGE_NAME, getConfigBlob(CONFIG()));
     }
-    flomoSyncHandler(CONFIG());
+    flomoSyncHandler();
 }
 
 function clickFlomoMenuRefresh() {
@@ -79,8 +88,15 @@ function clickFlomoMenuUpdateCache() {
         width: "750px",
         height: "550px",
     })
-    const app = createApp(ShowTips, { dialog: dialog });
-    app.mount('#PKMTips');
+    const app = createApp(ShowTipsVue, { 
+        tips: "hello world <strong>blod</strong>",
+        cancel: () => {
+            dialog.destroy();
+        }, 
+        confirm: () => {
+            dialog.destroy();
+        } });
+    app.mount("#PKMTips");
 }
 
 async function clickCuboxMenuImoprt() {
@@ -88,12 +104,12 @@ async function clickCuboxMenuImoprt() {
     // const email = CONFIG().account.cubox.email;
     // const password = CONFIG().account.cubox.password;
     // loginCubox(email, password);
-    cuboxSyncHandler(CONFIG());
+    // cuboxSyncHandler(CONFIG());
 }
 
-// 文档 Icon 点击事件
+/* ------------------------ 文档 icon 点击事件 ------------------------ */
 
-function onEditorTitleClicked(e: CustomEvent, plugin: Plugin) {
+export function onEditorTitleClicked(e: CustomEvent) {
     console.log(e);
     const detail: IEventBusMap["click-editortitleicon"] = e.detail;
     const menu = detail.menu;
@@ -113,7 +129,7 @@ function onEditorTitleClicked(e: CustomEvent, plugin: Plugin) {
                 icon: "iconScrollHoriz",
                 label: "链接转换",
                 click: () => {
-                    clickDocMenuLinkTitle(detail.data.id, plugin);
+                    clickDocMenuLinkTitle(detail.data.id);
                 }
             },
             {
@@ -127,88 +143,16 @@ function onEditorTitleClicked(e: CustomEvent, plugin: Plugin) {
     });
 }
 
-async function clickDocMenuRefMemos(docName: string, docId: string) {
-    const inbox = await inDailyNoteBox(docId, CONFIG().setting.flomo.dn_box);
-    if (!inbox) {
-        showMessage('当前文档非 Daily Note 文档');
-        return;
-    }
-
-    const [newMemos, memosLink, memosRef] = await getMemosRefByDate(docName);
-    if (newMemos.length > 0) {
-        showMessage('存在未导入 Memos');
-    }
-    
-    if (memosLink.length > 0) {
-        let markdown = "";
-        const data = CONFIG().setting.flomo.dn_use_ref ? memosRef : memosLink;
-        const linkDoc = CONFIG().setting.flomo.dn_link_doc;
-
-        if (linkDoc) {
-            const block = await getBlock(linkDoc);
-            const docLink = `((${linkDoc} "${block.content}"))`;
-            markdown = '- ' + docLink + '\n    - ' + data.join('\n    - ');
-        } else {
-            markdown = '- ' + data.join('\n- ');
-        }
-
-        if (CONFIG().setting.flomo.dn_insert_before) {
-            await client.prependBlock({
-                parentID: docId,
-                dataType: 'markdown',
-                data: markdown,
-            })
-        } else {
-            await client.appendBlock({
-                parentID: docId,
-                dataType: 'markdown',
-                data: markdown,
-            })
-        }
-    } else {
-        showMessage(`${docName} 没有创建 Memos`);
-    }
-    console.log(newMemos, memosLink, memosRef);
-}
-
-async function clickDocMenuLinkTitle(docId: string, plugin: Plugin) {
-    // 获取文档 markdown
-    const response = await client.getBlockKramdown({ id: docId });
-    const markdown = response.data.kramdown;
-    // 提取链接
-    const linkInfos: ILinkInfo[] = [];
-    const blockList = [...markdown.matchAll(/{{{row.*?}}}\s+{:.*?}/gs)];
-    blockList.forEach(block => {
-        // 正则提取超级块 ID
-        const id = block[0].match(/}}}\s+{:.*?id="(.*?)"/s)[1];
-        // 正则提取非图片链接
-        const links = [...block[0].matchAll(/(?<!\!)\[.*?\]\((http.*?)\)/g)];
-        links.forEach(link => {
-            linkInfos.push({ blockId: id, link: link[1] } as ILinkInfo);
-        })
-    })
-    // 弹窗选择替换
-    new Dialog({
-        title: "链接转换",
-        content: `<div id="PKMLinkTitle" class="fn__flex-column"></div>`,
-        width: "750px",
-        height: "550px",
-    })
-    const app = createApp(LinkTitleVue, { linkInfos: linkInfos, plugin: plugin });
-    app.mount('#PKMLinkTitle');
-    console.log("在设置哦");
-}
-
 async function clickDocMenuTest(docId: string) {
     // 获取文档 markdown
     const response = await client.getBlockKramdown({ id: docId });
     const markdown = response.data.kramdown;
-    getAllMdUrlTitle(markdown);
+    replaceAllMdUrlTitle(markdown);
 }
 
-// 链接菜单打开事件
+/* ------------------------ 链接菜单打开事件 ------------------------ */
 
-function onMenuLinkOpened(e: CustomEvent) {
+export function onMenuLinkOpened(e: CustomEvent) {
     console.log(e);
     const detail: IEventBusMap["open-menu-link"] = e.detail;
     const menu = detail.menu;
@@ -249,16 +193,8 @@ async function clickLinkMenuLinkTitle(element: HTMLElement) {
 }
 
 async function clickLinkMenuSaveByCubox(element: HTMLElement) {
-    const config = CONFIG();
     const link = element.dataset["href"];
-    const bookmark = await saveToCubox(link, config);
-    await createClipperDoc(bookmark, config);
+    const bookmark = await saveToCubox(link);
+    await createClipperDoc(bookmark);
     console.log(bookmark);
-}
-
-export {
-    TopBarMenu,
-
-    onEditorTitleClicked,
-    onMenuLinkOpened,
 }

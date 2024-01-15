@@ -1,14 +1,21 @@
 import { Plugin } from "siyuan";
-import { client } from "../api/siyuan";
+import { client } from "../apps/siyuan/api";
 import { GlobalConfig } from "../types/config";
 import { showMessage } from "siyuan";
 import { DEFAULT_CONFIG } from "../config/default";
+
+// todo: 这里可以在 index 那里 export 一个 plugin 对象，不用这么麻烦
 
 export const PLUGIN_NAME = "siyuan-plugin-pkm-tools";
 export const STORAGE_NAME = "config.json";
 export const CONFIG = () => {
     return getPluginConfig() as GlobalConfig;
 };
+
+export function getPlugin(pluginName = PLUGIN_NAME) {
+    const plugins: Plugin[] = window["siyuan"]["ws"]["app"]["plugins"];
+    return plugins.find(plugin => plugin.name === pluginName);
+}
 
 export function getPluginConfig(pluginName = PLUGIN_NAME, storageName = STORAGE_NAME) {
     const plugins: Plugin[] = window["siyuan"]["ws"]["app"]["plugins"];

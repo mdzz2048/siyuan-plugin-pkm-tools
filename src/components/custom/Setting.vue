@@ -5,40 +5,40 @@
             <!-- 页签 -->
             <template v-if="panel?.tabs">
                 <Tabs :tabs="panel?.tabs" @tabChanged="changeFocus">
-                    <Panel v-for="tab of panel.tabs" :display="tab.focus" :top="false">
-                        <!-- item -->
-                        <Item v-for="item of tab.items" v-bind="item" 
-                            v-show="!hindItems?.[item.input.settingKey]" @change="refersh"
-                        >
-                            <Input v-bind="item.input" @clicked="clicked" @changed="changed"/>
-                        </Item>
-                        <!-- group -->
-                        <Group v-for="group of tab.groups" :title="group.title">
-                            <MiniItem v-for="option of group.miniItems" v-bind="option"
-                                v-show="!hindItems?.[option.input.settingKey]" @change="refersh"
+                    <Panel v-for="tab of panel.tabs" :display="tab.focus" :top="false" :name="panel.name">
+                        <template v-for="item of tab.items">
+                            <Group v-if="item.isGroup" :title="item.title">
+                                <MiniItem v-for="option of item.miniItems" v-bind="option"
+                                    v-show="!hindItems?.[option.input.settingKey]" @change="refersh"
+                                >
+                                    <Input v-bind="option.input" @clicked="clicked" @changed="changed"/>
+                                </MiniItem>
+                            </Group>
+                            <Item v-else v-bind="item" :key="item.index"
+                                v-show="!hindItems?.[item.input.settingKey]" @change="refersh"
                             >
-                                <Input v-bind="option.input" @clicked="clicked" @changed="changed"/>
-                            </MiniItem>
-                        </Group>
+                                <Input v-bind="item.input" @clicked="clicked" @changed="changed"/>
+                            </Item>
+                        </template>
                     </Panel>
                 </Tabs>
             </template>
             <!-- 配置项 -->
             <template v-else>
-                <!-- item -->
-                <Item v-for="item of panel.items" v-bind="item" 
-                    v-show="!hindItems?.[item.input.settingKey]" @change="refersh"
-                >
-                    <Input v-bind="item.input" @clicked="clicked" @changed="changed"/>
-                </Item>
-                <!-- group -->
-                <Group v-for="group of panel.groups" :title="group.title">
-                    <MiniItem v-for="option of group.miniItems" v-bind="option"
-                        v-show="!hindItems?.[option.input.settingKey]" @change="refersh"
+                <template v-for="item of panel.items">
+                    <Group v-if="item.isGroup" :title="item.title">
+                        <MiniItem v-for="option of item.miniItems" v-bind="option"
+                            v-show="!hindItems?.[option.input.settingKey]" @change="refersh"
+                        >
+                            <Input v-bind="option.input" @clicked="clicked" @changed="changed"/>
+                        </MiniItem>
+                    </Group>
+                    <Item v-else v-bind="item" :key="item.index"
+                        v-show="!hindItems?.[item.input.settingKey]" @change="refersh"
                     >
-                        <Input v-bind="option.input" @clicked="clicked" @changed="changed"/>
-                    </MiniItem>
-                </Group>
+                        <Input v-bind="item.input" @clicked="clicked" @changed="changed"/>
+                    </Item>
+                </template>
             </template>
         </Panel>
     </Panels>
@@ -50,7 +50,9 @@ import { ITab } from '../siyuan/setting';
 import { CONFIG } from '../../utils/config';
 import { fackBookmark } from '../../config/fake';
 import { parseTemplate } from '../../utils/template';
-import { SETTING_CONFIG, getNotebookOptions, updateConfig, updateObjectByKey, ISettingConfig } from './setting';
+import { 
+    SETTING_CONFIG, getNotebookOptions, updateConfig, updateObjectByKey, ISettingConfig 
+} from './setting';
 import Tabs from '../siyuan/setting/Tabs.vue';
 import Panel from '../siyuan/setting/Panel.vue';
 import Panels from '../siyuan/setting/Panels.vue';
@@ -67,6 +69,8 @@ const hindItems = ref({
     "flomoSaveDatePath": config.setting.flomo.memo_import_type !== "2",
     "cuboxSavePath": config.setting.cubox.article_import_type !== "1",
     "cuboxSaveDatePath": config.setting.cubox.article_import_type !== "2",
+    "cuboxCleanRuleDate": config.setting.cubox.clean_type !== "2",
+    "cuboxCleanRuleCount": config.setting.cubox.clean_type !== "3",
     "cuboxDocTemplateParsed": true,
 });
 
@@ -100,6 +104,8 @@ function refersh() {
     hindItems.value.flomoSaveDatePath = config.setting.flomo.memo_import_type !== "2";
     hindItems.value.cuboxSavePath = config.setting.cubox.article_import_type !== "1";
     hindItems.value.cuboxSaveDatePath = config.setting.cubox.article_import_type !== "2";
+    hindItems.value.cuboxCleanRuleDate = config.setting.cubox.clean_type !== "2";
+    hindItems.value.cuboxCleanRuleCount = config.setting.cubox.clean_type !== "3";
 }
 
 /**
@@ -157,6 +163,9 @@ function clicked(key: string, value: any) {
     key === "cuboxSaveType" && (config.setting.cubox.article_import_type = value);
     key === "cuboxSavePath" && (config.setting.cubox.article_path = value);
     key === "cuboxSaveDatePath" && (config.setting.cubox.article_date_path = value);
+    key === "cuboxCleanType" && (config.setting.cubox.clean_type = value);
+    key === "cuboxCleanRuleDate" && (config.setting.cubox.clean_rules_date = value);
+    key === "cuboxCleanRuleCount" && (config.setting.cubox.clean_rules_count = value);
     key === "cuboxDocTemplate" && (config.setting.cubox.article_template = value);
     key === "cuboxBookmarkTemplate" && (config.setting.cubox.bookmark_template = value);
     key === "writeathonUser" && (config.account.cubox.email = value);

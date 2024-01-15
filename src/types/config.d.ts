@@ -33,6 +33,9 @@ export interface GlobalConfig {
             article_import_type: string,
             article_template: string,
             bookmark_template: string,
+            clean_type: string,
+            clean_rules_date: string,
+            clean_rules_count: number,
         },
         writeathon: {
             note_template: string,

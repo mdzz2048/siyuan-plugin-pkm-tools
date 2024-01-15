@@ -1,4 +1,4 @@
-import { IBookmark } from "../types/cubox";
+import { IBookmark } from "../apps/cubox/cubox";
 
 const fackBookmark: IBookmark = {
     "userSearchEngineID": "7121953996931073340",

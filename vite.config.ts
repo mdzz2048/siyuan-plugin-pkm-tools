@@ -1,11 +1,15 @@
 import { resolve } from "path"
-import { defineConfig, loadEnv } from "vite"
+import { defineConfig } from "vite"
 import minimist from "minimist"
 import { viteStaticCopy } from "vite-plugin-static-copy"
 import livereload from "rollup-plugin-livereload"
 import zipPack from "vite-plugin-zip-pack";
-import fg from 'fast-glob';
-import vue from '@vitejs/plugin-vue'
+import fg from "fast-glob";
+import vue from "@vitejs/plugin-vue"
+import AutoImport from "unplugin-auto-import/vite"
+import Components from "unplugin-vue-components/vite"
+import ElementPlus from "unplugin-element-plus/vite"
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers"
 
 const args = minimist(process.argv.slice(2))
 const isWatch = args.watch || args.w || false
@@ -42,6 +46,13 @@ export default defineConfig({
                 },
             ],
         }),
+        AutoImport({
+            resolvers: [ElementPlusResolver()],
+        }),
+        Components({
+            resolvers: [ElementPlusResolver()],
+        }),
+        ElementPlus({ useSource: true }),
     ],
 
     // https://github.com/vitejs/vite/issues/1930
@@ -62,7 +73,7 @@ export default defineConfig({
 
         // 设置为 false 可以禁用最小化混淆
         // 或是用来指定是应用哪种混淆器
-        // boolean | 'terser' | 'esbuild'
+        // boolean | "terser" | "esbuild"
         // 不压缩，用于调试
         minify: !isWatch,
 
@@ -80,12 +91,12 @@ export default defineConfig({
                         livereload(devDistDir),
                         {
                             //监听静态资源文件
-                            name: 'watch-external',
+                            name: "watch-external",
                             async buildStart() {
                                 const files = await fg([
-                                    'src/i18n/*.json',
-                                    './README*.md',
-                                    './plugin.json'
+                                    "src/i18n/*.json",
+                                    "./README*.md",
+                                    "./plugin.json"
                                 ]);
                                 for (let file of files) {
                                     this.addWatchFile(file);
@@ -94,9 +105,9 @@ export default defineConfig({
                         }
                     ] : [
                         zipPack({
-                            inDir: './dist',
-                            outDir: './',
-                            outFileName: 'package.zip'
+                            inDir: "./dist",
+                            outDir: "./",
+                            outFileName: "package.zip"
                         })
                     ]
                 )

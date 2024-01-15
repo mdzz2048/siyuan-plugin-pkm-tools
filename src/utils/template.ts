@@ -9,6 +9,7 @@ Handlebars.registerHelper('split', function(text: string, separator, trim: boole
     return list;
 })
 
+// todo: 适配模板编辑器内使用的情况，以及用户自定义处理函数的情况
 function parseTemplate(template: string, context: any) {
     const compiled = Handlebars.compile(template);
     const parsed = compiled(context);

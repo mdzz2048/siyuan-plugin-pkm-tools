@@ -1,5 +1,9 @@
 import CryptoJS from "crypto-js"
-import { IFlomoResp, ILoginRespData, IMemoLatestInfo, IMemoRespData } from "../types/flomo";
+import { IFlomoResp, ILoginRespData, IMemoLatestInfo, IMemoRespData } from "./flomo";
+
+// todo: 
+// 1. 重构 api 文件，仅保留 flomo api 相关的函数，其他工具函数移到 utils
+// 2. 添加 vitest 测试，保证测试没有问题
 
 const baseUrl = "https://flomoapp.com/api/v1";
 
@@ -76,7 +80,7 @@ export async function getMemos(token: string, latest_slug = "", latest_updated =
     return result.data as IMemoRespData[];
 }
 
-export async function getAllMemos(token: string, removeDeleted = false) {
+export async function getAllMemos(token: string, removeDeleted = true) {
     let memos = await getMemos(token);
     let latest_slug = getLatestInfo(memos).latest_slug;
     let latest_updated = getLatestInfo(memos).latest_updated;
@@ -90,4 +94,27 @@ export async function getAllMemos(token: string, removeDeleted = false) {
     }
     if (removeDeleted) memos.filter(memo => !memo.deleted_at);
     return memos;
+}
+
+export async function addMemo(token: string, content: string) {
+    let url = new URL(baseUrl + "/memo");
+    let timestamp = Math.floor(Date.now() / 1000);
+    let hash_str = `api_key=flomo_web&app_version=2.0&content=memo的HTML&created_at=xxx&source=web&timestamp=xxx&tz=8:0&webp=1`
+    let sign = getSign(hash_str);
+    let params = {
+        limit: "200", 
+        tz: "8:0", 
+        timestamp: timestamp.toString(), 
+        api_key: "flomo_web", 
+        app_version: "2.0", 
+        webp: "1", 
+        sign: sign
+    }
+    url.search = new URLSearchParams(params).toString();
+    let response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+    });
 }

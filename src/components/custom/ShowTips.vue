@@ -5,25 +5,17 @@
         @onCancle="cancel"
         @onConfirm="confirm"
     >
-        tips
+        <div v-html="tips"></div>
     </Tips>
 </template>
 
 <script setup lang="ts">
-    import { Dialog } from 'siyuan';
     import Tips from '../siyuan/dialog/Tips.vue';
 
     type IPropsOption = {
-        dialog: Dialog,
+        tips: string,
+        cancel: void | (() => void),
+        confirm: void | (() => void),
     }
-    const props = defineProps<IPropsOption>();
-
-    function cancel() {
-        // props.dialog.destroy();
-    }
-
-    function confirm() {
-        console.log('do something');
-        props.dialog.destroy();
-    }
+    defineProps<IPropsOption>();
 </script>

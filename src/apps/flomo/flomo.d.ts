@@ -1,3 +1,6 @@
+// todo: 把模块声明改成全局声明
+// 参考：https://github.com/svchord/siyuan-arco-calendar/pull/25
+
 export interface IFlomoResp {
     code: number, 
     message: string, 
